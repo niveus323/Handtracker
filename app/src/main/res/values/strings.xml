@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Handtracking</string>
+
+    <string name="overlay">Overlay</string>
+
+    <string name="dialog_permissions_title">권한 요청</string>
+    <string name="dialog_permissions_header">화면 제어를 위해 다음의 권한이 필요합니다</string>
+    <string name="dialog_permission_overlay">앱 위에 그리기</string>
+    <string name="dialog_permission_overlay_desc">다른 앱 위에 메뉴를 보이게 하기 위해 앱 위에 그리기 권한이 필요합니다.</string>
+    <string name="dialog_permission_accessibility">접근성</string>
+    <string name="dialog_permission_accessibility_desc">다른 앱에 터치를 수행하기 위해 접근성이 필요합니다.</string>
+    <string name="dialog_permission_camera">카메라</string>
+    <string name="dialog_permission_camera_desc">손 동작 인식을 위해 카메라를 사용합니다.</string>
+
+    <string name="notification_channel_name">AutoClicker</string>
+    <string name="notification_title">Clicker</string>
+    <string name="notification_message">Clicker 실행중</string>
+
+    <string name="content_desc_overlay_state">Overlay permission state</string>
+    <string name="content_desc_accessibility_state">Accessibility service permission state</string>
+    <string name="content_desc_camera_state">camera permission state</string>
+    <string name="content_desc_dialog_title_icon">The dialog title icon.</string>
+    <string name="content_desc_play_scenario_Tap">Play scenario Tap</string>
+    <string name="content_desc_play_scenario_Zoom">Play scenario Zoom</string>
+    <string name="content_desc_stop_clicker">Stop Smart Clicker</string>
+    <string name="content_desc_open_event_list">Open the event list</string>
+    <string name="content_desc_move_menu">Move the floating menu</string>
+
+    <string name="accessibility_service_description">Handtracking 애플리케이션은 다른 애플리케이션에서 터치를 발생시키기 위해 접근성을 필요로 합니다.</string>
+</resources>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable-v24/anim_play_pause.xml" value="0.1" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable-v24/ic_click_list.xml" value="0.159" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.1" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable-v24/ic_move.xml" value="0.159" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable-v24/ic_pause.xml" value="0.159" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable-v24/ic_play_arrow.xml" value="0.159" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable-v24/ic_stop.xml" value="0.1" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable/ic_all_conditions.xml" value="0.1" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable/ic_cancel.xml" value="0.1" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable/ic_confirm.xml" value="0.1" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable/ic_launcher_background.xml" value="0.1" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/layout/activity_main.xml" value="0.25" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/layout/dialog_permissions.xml" value="0.25" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/layout/overlay_menu.xml" value="0.25" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/layout/view_dialog_title.xml" value="0.10925925925925926" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.1" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.1" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/xml/accessibilityservice.xml" value="0.1464688675302967" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>

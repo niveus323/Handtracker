@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#4CAF50</color>
+    <color name="primaryDark">#388E3C</color>
+    <color name="accent">#448AFF</color>
+
+    <color name="textTitle">#FFFFFF</color>
+    <color name="textHint">#88FFFFFF</color>
+    <color name="listBackground">#EAEAEA</color>
+
+    <color name="overlayMenuBackground">#77000000</color>
+    <color name="overlayMenuButtons">#FFFFFF</color>
+    <color name="overlayViewPrimary">#FFFFFF</color>
+    <color name="overlayViewAccentPrimary">@color/primary</color>
+    <color name="overlayViewAccentSecondary">@color/accent</color>
+    <color name="overlayClickSelectorBackground">#77000000</color>
+
+    <color name="green_ok">#FF00FF00</color>
+    <color name="red_ko">#FFFF0000</color>
+</resources>
