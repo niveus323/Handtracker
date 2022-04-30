@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import com.example.handtracking.R
-import com.example.handtracking.activity.CameraFragment
+import com.example.handtracking.overlay.CameraFragment
 import com.example.handtracking.overlay.OverlayMenuController
 import java.io.File
 

@@ -1,4 +1,4 @@
-package com.example.handtracking.activity
+package com.example.handtracking.overlay
 
 import android.annotation.SuppressLint
 import android.content.Context
