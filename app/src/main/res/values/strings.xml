@@ -23,6 +23,7 @@
     <string name="content_desc_play_scenario_Tap">Play scenario Tap</string>
     <string name="content_desc_play_scenario_Zoom">Play scenario Zoom</string>
     <string name="content_desc_stop_clicker">Stop Smart Clicker</string>
+    <string name="content_desc_stop_recorder">Stop recording</string>
     <string name="content_desc_open_event_list">Open the event list</string>
     <string name="content_desc_move_menu">Move the floating menu</string>
 

@@ -11,7 +11,6 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.accessibility.AccessibilityEvent
 import androidx.core.app.NotificationCompat
-import androidx.core.view.GestureDetectorCompat
 import com.example.handtracking.activity.MainActivity
 import com.example.handtracking.engine.GestureEngine
 import com.example.handtracking.overlay.OverlayController
@@ -43,6 +42,7 @@ class ClickerService : AccessibilityService() {
     private var gestureDetector: GestureDetector? = null
 
     inner class LocalService {
+
         fun start(resultCode: Int, data: Intent) {
             if (isStarted) {
                 return
@@ -61,7 +61,6 @@ class ClickerService : AccessibilityService() {
             }
 
             gestureDetector = GestureDetector(this@ClickerService, MyGestureListener())
-
 
         }
 

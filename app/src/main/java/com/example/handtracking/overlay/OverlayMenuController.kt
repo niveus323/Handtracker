@@ -182,7 +182,7 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
      * Change the menu view visibility.
      * @param visibility the new visibility to apply.
      */
-    protected fun setMenuVisibility(visibility: Int) {
+    fun setMenuVisibility(visibility: Int) {
         menuLayout?.visibility = visibility
     }
 

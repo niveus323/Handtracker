@@ -29,7 +29,7 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
     fun isAccessibilityPermissionValid(): Boolean = clickerService != null
     fun isCameraPermissionValid(): Boolean =
         ContextCompat.checkSelfPermission(getApplication<Application>().applicationContext, android.Manifest.permission.CAMERA )  == PackageManager.PERMISSION_GRANTED
-    fun arePermissionsGranted(): Boolean = isOverlayPermissionValid() && isAccessibilityPermissionValid()
+    fun arePermissionsGranted(): Boolean = isOverlayPermissionValid() && isAccessibilityPermissionValid() && isCameraPermissionValid()
 
     fun loadScenario(resultCode: Int, data: Intent) {
         clickerService?.start(resultCode, data)

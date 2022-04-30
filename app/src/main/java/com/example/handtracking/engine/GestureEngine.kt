@@ -3,7 +3,6 @@ package com.example.handtracking.engine
 import android.accessibilityservice.GestureDescription
 import android.content.Context
 import android.content.Intent
-import android.graphics.Path
 import android.util.Log
 import com.example.handtracking.domain.Action
 import com.example.handtracking.extensions.ScreenMetrics
@@ -77,10 +76,15 @@ class GestureEngine(context: Context) {
             Action.Zoom(300,300, 500,500),
             Action.Zoom(250,250, 500,500)
         ))
+        actionExecutor?.terminateZoom()
     }
 
     fun processZoomOut() {
-        process(mutableListOf(Action.Zoom(300,300, 500,500)))
+        process(mutableListOf(
+            Action.Zoom(250,250, 500,500),
+            Action.Zoom(300,300, 500,500)
+        ))
+        actionExecutor?.terminateZoom()
     }
 
     private fun process(actions: MutableList<Action>) {
@@ -88,7 +92,6 @@ class GestureEngine(context: Context) {
             actions.let { actions ->
                 actionExecutor?.executeActions(actions)
             }
-            actionExecutor?.terminateZoom()
         }
     }
 
