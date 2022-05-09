@@ -44,10 +44,10 @@
                     android:src="@drawable/ic_move" />
 
                 <ImageButton
-                    android:id="@+id/btn_stop_record"
+                    android:id="@+id/btn_record"
                     style="@style/OverlayButton"
                     android:contentDescription="@string/content_desc_stop_recorder"
-                    android:src="@drawable/ic_stop" />
+                    android:src="@android:drawable/presence_video_busy" />
 
             </LinearLayout>
 

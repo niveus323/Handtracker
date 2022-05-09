@@ -1,4 +1,4 @@
-package com.example.handtracking.overlay
+package com.example.handtracking.engine
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -31,7 +31,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class CameraFragment(private val mcontext: Context, private val surfaceView: SurfaceView ) : LifecycleOwner {
+class Camera(private val mcontext: Context, private val surfaceView: SurfaceView ) : LifecycleOwner {
     private val lifecycleRegistry: LifecycleRegistry by lazy { LifecycleRegistry(this) }
     override fun getLifecycle(): Lifecycle = lifecycleRegistry
 
@@ -191,7 +191,7 @@ class CameraFragment(private val mcontext: Context, private val surfaceView: Sur
     }
 
     companion object {
-        private val TAG = CameraFragment::class.java.simpleName
+        private val TAG = Camera::class.java.simpleName
 
         private const val RECORDER_VIDEO_BITRATE: Int = 10_000_000
 

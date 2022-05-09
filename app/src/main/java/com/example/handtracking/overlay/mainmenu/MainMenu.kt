@@ -7,7 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import com.example.handtracking.R
-import com.example.handtracking.overlay.CameraFragment
+import com.example.handtracking.engine.Camera
 import com.example.handtracking.overlay.OverlayMenuController
 import java.io.File
 
@@ -16,7 +16,7 @@ class MainMenu(context: Context) : OverlayMenuController(context){
         attachToLifecycle(this@MainMenu)
     }
 
-    private lateinit var cameraFragment: CameraFragment
+    private lateinit var cameraFragment: Camera
 
     private lateinit var outputFolder : File
 
@@ -34,7 +34,7 @@ class MainMenu(context: Context) : OverlayMenuController(context){
         val outputPath = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS+File.separator+"Handtracking")
         outputPath?.mkdirs()
         outputFolder = File("$outputPath")
-        cameraFragment = CameraFragment(context, getMenuItemView(R.id.surfaceView)!!)
+        cameraFragment = Camera(context, getMenuItemView(R.id.surfaceView)!!)
         cameraFragment.initialize()
     }
 
@@ -70,10 +70,10 @@ class MainMenu(context: Context) : OverlayMenuController(context){
             R.id.btn_play -> viewModel?.playTap()
             R.id.btn_play2 -> viewModel?.playZoom()
             R.id.btn_stop -> dismiss()
-            R.id.btn_stop_record -> {
+            R.id.btn_record -> {
                 if(isRecording) {
                     val intent = cameraFragment.stopRecording()
-                    setMenuVisibility(View.GONE)
+//                    setMenuVisibility(View.GONE)
                     context.startActivity(intent)
                 }
                 else cameraFragment.startRecording()
