@@ -9,6 +9,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
+<!--        <RelativeLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:duplicateParentState="true"-->
+<!--            app:layout_constraintStart_toStartOf="parent"-->
+<!--            app:layout_constraintTop_toTopOf="parent">-->
+
+<!--        </RelativeLayout>-->
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -51,10 +60,29 @@
 
             </LinearLayout>
 
-            <SurfaceView
-                android:id="@+id/surfaceView"
-                android:layout_width="198dp"
-                android:layout_height="match_parent" />
+<!--            <FrameLayout-->
+<!--                android:id="@+id/frameLayout"-->
+<!--                android:layout_width="52dp"-->
+<!--                android:layout_height="52dp"-->
+<!--                android:baselineAligned="false">-->
+
+<!--                &lt;!&ndash;                <SurfaceView&ndash;&gt;-->
+<!--                &lt;!&ndash;                    android:id="@+id/surfaceView"&ndash;&gt;-->
+<!--                &lt;!&ndash;                    android:layout_width="match_parent"&ndash;&gt;-->
+<!--                &lt;!&ndash;                    android:layout_height="match_parent" />&ndash;&gt;-->
+<!--            </FrameLayout>-->
+
+            <FrameLayout
+                android:id="@+id/frameLayout"
+                android:layout_width="150dp"
+                android:layout_height="match_parent"
+                android:baselineAligned="false">
+
+                <!--                <SurfaceView-->
+                <!--                    android:id="@+id/surfaceView"-->
+                <!--                    android:layout_width="match_parent"-->
+                <!--                    android:layout_height="match_parent" />-->
+            </FrameLayout>
 
         </LinearLayout>
 
