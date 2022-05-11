@@ -14,10 +14,13 @@
         <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable/ic_cancel.xml" value="0.1" />
         <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable/ic_confirm.xml" value="0.1" />
         <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable/ic_launcher_background.xml" value="0.1" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable/ic_target.xml" value="0.1" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/drawable/target.xml" value="0.1" />
         <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/layout/activity_handstracking.xml" value="0.25" />
         <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/layout/dialog_permissions.xml" value="0.25" />
-        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/layout/overlay_menu.xml" value="0.5" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/layout/overlay_menu.xml" value="0.67" />
+        <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/layout/target.xml" value="0.18" />
         <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/layout/view_dialog_title.xml" value="0.10925925925925926" />
         <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.1" />
         <entry key="..\:/Users/niveu/AndroidStudioProjects/Handtracking/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.1" />

@@ -7,21 +7,47 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:visibility="visible">
 
-<!--        <RelativeLayout-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="match_parent"-->
-<!--            android:duplicateParentState="true"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintTop_toTopOf="parent">-->
+        <ImageView
+            android:id="@+id/imageView2"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            style="@style/feedbackIcon"
+            app:srcCompat="@android:drawable/ic_dialog_alert"
+            />
 
-<!--        </RelativeLayout>-->
+        <RelativeLayout
+            android:id="@+id/relativeLayout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:duplicateParentState="true"
+            android:visibility="invisible"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <!--            android:layout_width="52dp - 200dp"-->
+            <!--            android:layout_height="52dp - 200dp"-->
+
+            <FrameLayout
+                android:id="@+id/frameLayout"
+                android:layout_width="52dp"
+                android:layout_height="52dp"
+                android:baselineAligned="false">
+
+                <!--                <SurfaceView-->
+                <!--                    android:id="@+id/surfaceView"-->
+                <!--                    android:layout_width="match_parent"-->
+                <!--                    android:layout_height="match_parent" />-->
+            </FrameLayout>
+        </RelativeLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <LinearLayout
                 android:id="@+id/view_group_buttons"
@@ -59,30 +85,6 @@
                     android:src="@android:drawable/presence_video_busy" />
 
             </LinearLayout>
-
-<!--            <FrameLayout-->
-<!--                android:id="@+id/frameLayout"-->
-<!--                android:layout_width="52dp"-->
-<!--                android:layout_height="52dp"-->
-<!--                android:baselineAligned="false">-->
-
-<!--                &lt;!&ndash;                <SurfaceView&ndash;&gt;-->
-<!--                &lt;!&ndash;                    android:id="@+id/surfaceView"&ndash;&gt;-->
-<!--                &lt;!&ndash;                    android:layout_width="match_parent"&ndash;&gt;-->
-<!--                &lt;!&ndash;                    android:layout_height="match_parent" />&ndash;&gt;-->
-<!--            </FrameLayout>-->
-
-            <FrameLayout
-                android:id="@+id/frameLayout"
-                android:layout_width="150dp"
-                android:layout_height="match_parent"
-                android:baselineAligned="false">
-
-                <!--                <SurfaceView-->
-                <!--                    android:id="@+id/surfaceView"-->
-                <!--                    android:layout_width="match_parent"-->
-                <!--                    android:layout_height="match_parent" />-->
-            </FrameLayout>
 
         </LinearLayout>
 

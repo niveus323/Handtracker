@@ -39,6 +39,22 @@
         <item name="android:scaleType">fitCenter</item>
     </style>
 
+    <style name="feedbackIcon">
+        <item name="android:layout_width">@dimen/feedback_icon_size</item>
+        <item name="android:layout_height">@dimen/feedback_icon_size</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:tint">@color/primary</item>
+        <item name="android:scaleType">fitCenter</item>
+    </style>
+
+    <style name="targetItem">
+        <item name="android:layout_width">@dimen/target_item_size</item>
+        <item name="android:layout_height">@dimen/target_item_size</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:tint">@color/red_ko</item>
+        <item name="android:scaleType">fitCenter</item>
+    </style>
+
     <style name="Separator">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1dp</item>

@@ -40,6 +40,8 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
         ScreenMetrics.TYPE_COMPAT_OVERLAY,
         WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
         PixelFormat.TRANSLUCENT)
@@ -53,12 +55,6 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
 
     /** The root view of the menu overlay. Retrieved from [onCreateMenu] implementation. */
     private var menuLayout: ViewGroup? = null
-    /**
-     * The view to be displayed between the current activity and the overlay menu.
-     * It can be shown/hidden by pressing on the menu item with the id [R.id.btn_hide_overlay]. If null, pressing this
-     * button will have no effect.
-     */
-    protected var screenOverlayView: View? = null
     /** The layout parameters of the overlay view. */
     private var overlayLayoutParams:  WindowManager.LayoutParams? = null
 
@@ -68,10 +64,7 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
     private var moveInitialTouchPosition = 0 to 0
 
     /** Listener upon the screen orientation changes. */
-    //Haeng - 리스너 정의. 실행시 참조하여 객체에 접근.
     private val orientationListener = ::onOrientationChanged
-    /** Tells if there is a hide overlay view button or not. */
-    private var haveHideButton = false
 
     /**
      * Creates the root view of the menu overlay.
@@ -82,15 +75,6 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
      *         order for move and hide to work as expected.
      */
     protected abstract fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup
-
-    /**
-     * Creates the view to be displayed between the current activity and the overlay menu.
-     * It can be shown/hidden by pressing on the menu item with the id [R.id.btn_hide_overlay]. If null, pressing this
-     * button will have no effect.
-     *
-     * @return the overlay view, or null if none is required.
-     */
-    protected open fun onCreateOverlayView(): View? = null
 
     /**
      * Creates the layout parameters for the [screenOverlayView].
@@ -110,7 +94,6 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
     override fun onCreate() {
         // First, call implementation methods to check what we should display
         menuLayout = onCreateMenu(context.getSystemService(LayoutInflater::class.java))
-        screenOverlayView = onCreateOverlayView()
         overlayLayoutParams = onCreateOverlayViewLayoutParams()
 
         // Set the clicks listener on the menu items
@@ -120,18 +103,6 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
                 @SuppressLint("ClickableViewAccessibility") // View is only drag and drop, no click
                 when (view.id) {
                     R.id.btn_move -> view.setOnTouchListener { _: View, event: MotionEvent -> onMoveTouched(event) }
-                    R.id.btn_hide_overlay -> {
-                        haveHideButton = true
-                        view.setOnClickListener {
-                            screenOverlayView?.let { view ->
-                                if (view.visibility == View.VISIBLE) {
-                                    setOverlayViewVisibility(View.GONE)
-                                } else {
-                                    setOverlayViewVisibility(View.VISIBLE)
-                                }
-                            }
-                        }
-                    }
                     else -> view.setOnClickListener { v -> onMenuItemClicked(v.id) }
                 }
             }
@@ -149,21 +120,11 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
     override fun onStart() {
         //screenMetrics = 화면...?
         screenMetrics.registerOrientationListener(orientationListener)
-
-        // Add the overlay, if any. It needs to be below the menu or user won't be able to click on the menu.
-        screenOverlayView?.let {
-            windowManager.addView(it, overlayLayoutParams)
-        }
         windowManager.addView(menuLayout, menuLayoutParams)
-        setMenuItemViewEnabled(R.id.btn_hide_overlay, false , true)
     }
 
     @CallSuper
     override fun onStop() {
-        screenOverlayView?.let {
-            windowManager.removeView(it)
-        }
-
         windowManager.removeView(menuLayout)
 
         screenMetrics.unregisterOrientationListener()
@@ -175,7 +136,6 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
         saveMenuPosition(screenMetrics.orientation)
 
         menuLayout = null
-        screenOverlayView = null
     }
 
     /**
@@ -184,21 +144,6 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
      */
     fun setMenuVisibility(visibility: Int) {
         menuLayout?.visibility = visibility
-    }
-
-    /**
-     * Change the overlay view visibility, allowing the user the click on the Activity bellow the overlays.
-     * Updates the hide button state, if any.
-     *
-     * @param newVisibility the new visibility to apply.
-     */
-    protected fun setOverlayViewVisibility(newVisibility: Int) {
-        screenOverlayView?.apply {
-            visibility = newVisibility
-            if (haveHideButton) {
-                setMenuItemViewEnabled(R.id.btn_hide_overlay, visibility == View.VISIBLE , true)
-            }
-        }
     }
 
     /**
@@ -294,13 +239,6 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
         loadMenuPosition(screenMetrics.orientation)
 
         windowManager.updateViewLayout(menuLayout, menuLayoutParams)
-        screenOverlayView?.let { overlayView ->
-            screenMetrics.screenSize.let { size ->
-                overlayLayoutParams?.width = size.x
-                overlayLayoutParams?.height = size.y
-            }
-            windowManager.updateViewLayout(overlayView, overlayLayoutParams)
-        }
     }
 
     /**

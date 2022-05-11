@@ -1,10 +1,17 @@
 package com.example.handtracking.engine.mediapipe
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.PixelFormat
 import android.util.Log
+import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
+import android.view.WindowManager
 import android.widget.FrameLayout
 import androidx.lifecycle.LifecycleOwner
+import com.example.handtracking.R
+import com.example.handtracking.extensions.ScreenMetrics
 import com.google.mediapipe.framework.TextureFrame
 import com.google.mediapipe.solutioncore.SolutionGlSurfaceView
 import com.google.mediapipe.solutions.hands.HandLandmark
@@ -12,25 +19,75 @@ import com.google.mediapipe.solutions.hands.Hands
 import com.google.mediapipe.solutions.hands.HandsOptions
 import com.google.mediapipe.solutions.hands.HandsResult
 
-class HandsTracker(private var context: Context, private var frameLayout: FrameLayout) {
+class HandsTracker(private var context: Context, private var frameLayout: FrameLayout, private var screenMetrics: ScreenMetrics) {
     private lateinit var hands: Hands
     private var inputSource: InputSource = InputSource.UNKNOWN
     private lateinit var cameraInput: CameraInput
     private lateinit var glSurfaceView: SolutionGlSurfaceView<HandsResult>
+    private var targetLayout: View? = null
+    private val layoutParams: WindowManager.LayoutParams = WindowManager.LayoutParams(
+        WindowManager.LayoutParams.WRAP_CONTENT,
+        WindowManager.LayoutParams.WRAP_CONTENT,
+        ScreenMetrics.TYPE_COMPAT_OVERLAY,
+        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+        PixelFormat.TRANSLUCENT)
+    private val windowManager = context.getSystemService(WindowManager::class.java)
 
     fun onCreate(lifecycleOwner: LifecycleOwner) {
+        createLayout()
+        initializeCameraInput()
+        setupStreamingModePipeline(InputSource.CAMERA, lifecycleOwner)
+    }
+
+    @SuppressLint("InflateParams")
+    private fun createLayout() {
+        targetLayout = context.getSystemService(LayoutInflater::class.java).inflate(R.layout.target, null) as View
+        targetLayout?.bringToFront()
+        WindowManager.LayoutParams().apply {
+            copyFrom(layoutParams)
+        }
+        layoutParams.gravity = Gravity.TOP or Gravity.START
+        windowManager.addView(targetLayout, layoutParams)
+    }
+
+    private fun initializeCameraInput() {
         cameraInput = CameraInput()
         cameraInput.setNewFrameListener { textureFrame: TextureFrame? ->
             hands.send(
                 textureFrame
             )
         }
-//        stopCurrentPipeline()
-        setupStreamingModePipeline(InputSource.CAMERA, lifecycleOwner)
     }
 
     fun onDestroy() {
         stopCurrentPipeline()
+        destroyLayout()
+    }
+
+    private fun destroyLayout() {
+        windowManager.removeView(targetLayout)
+        targetLayout = null
+    }
+
+    fun setTargetVisibility(visibility: Int) {
+        targetLayout?.visibility = visibility
+    }
+
+    private fun setTargetLayoutPosition(handsResult: HandsResult) {
+        val displaySize = screenMetrics.screenSize
+        val x = handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.INDEX_FINGER_TIP].x * displaySize.x.toFloat()
+        val y = handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.INDEX_FINGER_TIP].y * displaySize.y.toFloat()
+        Log.i(TAG, "Target Position: ($x, $y)")
+        layoutParams.x = x.toInt()
+        layoutParams.y = y.toInt()
+        targetLayout?.post {
+            windowManager.updateViewLayout(targetLayout, layoutParams)
+        }
     }
 
     //Start Camera
@@ -63,11 +120,12 @@ class HandsTracker(private var context: Context, private var frameLayout: FrameL
         glSurfaceView.setSolutionResultRenderer(HandsResultGlRenderer())
         glSurfaceView.setRenderInputImage(true)
         hands.setResultListener { handsResult: HandsResult? ->
-            if (handsResult != null) {
-                logFingerTipLandmark(handsResult,  /*showPixelValues=*/false)
+            if (handsResult != null && !handsResult.multiHandLandmarks().isEmpty()) {
+//                logFingerTipLandmark(handsResult,  /*showPixelValues=*/false)
+                setTargetLayoutPosition(handsResult)
             }
-            glSurfaceView.setRenderData(handsResult)
-            glSurfaceView.requestRender()
+//            glSurfaceView.setRenderData(handsResult)
+//            glSurfaceView.requestRender()
         }
 
         // The runnable to start camera after the gl surface view is attached.
@@ -77,14 +135,11 @@ class HandsTracker(private var context: Context, private var frameLayout: FrameL
         }
 
         // Updates the preview layout.
-//        val frameLayout: FrameLayout = findViewById<FrameLayout>(R.id.preview_display_layout)
         frameLayout.removeAllViewsInLayout()
         frameLayout.addView(glSurfaceView)
-        glSurfaceView.visibility = View.VISIBLE
-//        glSurfaceView.visibility = View.INVISIBLE
+        glSurfaceView.visibility = View.INVISIBLE
         frameLayout.requestLayout()
-        frameLayout.visibility = View.VISIBLE
-//        frameLayout.visibility = View.INVISIBLE
+        frameLayout.visibility = View.INVISIBLE
     }
 
     private fun startCamera(lifecycleOwner: LifecycleOwner) {
@@ -106,9 +161,6 @@ class HandsTracker(private var context: Context, private var frameLayout: FrameL
     }
 
     private fun logFingerTipLandmark(result: HandsResult, showPixelValues: Boolean) {
-        if (result.multiHandLandmarks().isEmpty()) {
-            return
-        }
         val landmark = result.multiHandLandmarks()[0].landmarkList[HandLandmark.INDEX_FINGER_TIP]
         // For Bitmaps, show the pixel values. For texture inputs, show the normalized coordinates.
         if (showPixelValues) {

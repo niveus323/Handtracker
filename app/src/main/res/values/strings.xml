@@ -26,6 +26,7 @@
     <string name="content_desc_stop_recorder">Stop recording</string>
     <string name="content_desc_open_event_list">Open the event list</string>
     <string name="content_desc_move_menu">Move the floating menu</string>
+    <string name="content_desc_target">Mediapipe Target</string>
 
     <string name="accessibility_service_description">Handtracking 애플리케이션은 다른 애플리케이션에서 터치를 발생시키기 위해 접근성을 필요로 합니다.</string>
 </resources>

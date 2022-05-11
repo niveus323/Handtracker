@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Environment
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import com.example.handtracking.R
@@ -34,14 +33,13 @@ class MainMenu(context: Context) : OverlayMenuController(context){
 
     override fun onCreate() {
         super.onCreate()
-        setOverlayViewVisibility(View.GONE)
         val outputPath = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS+File.separator+"Handtracking")
         outputPath?.mkdirs()
         outputFolder = File("$outputPath")
+        handsTracker = HandsTracker(context, getMenuItemView(R.id.frameLayout)!!,screenMetrics)
+        handsTracker.onCreate(this)
 //        camera = Camera(context, getMenuItemView(R.id.surfaceView)!!)
 //        camera.initialize()
-        handsTracker = HandsTracker(context, getMenuItemView(R.id.frameLayout)!!)
-        handsTracker.onCreate(this)
     }
 
     override fun onStart() {
