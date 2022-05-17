@@ -16,8 +16,8 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="cardBackgroundColor">@color/overlayMenuBackground</item>
-        <item name="cardElevation">0dp</item>
-        <item name="cardCornerRadius">10dp</item>
+<!--        <item name="cardElevation">0dp</item>-->
+<!--        <item name="cardCornerRadius">10dp</item>-->
     </style>
 
     <style name="OverlayButtonsLayout">
@@ -42,8 +42,8 @@
     <style name="feedbackIcon">
         <item name="android:layout_width">@dimen/feedback_icon_size</item>
         <item name="android:layout_height">@dimen/feedback_icon_size</item>
-        <item name="android:background">@android:color/transparent</item>
-        <item name="android:tint">@color/primary</item>
+        <item name="android:background">@color/overlayMenuBackground</item>
+        <item name="android:tint">@color/overlayMenuButtons</item>
         <item name="android:scaleType">fitCenter</item>
     </style>
 

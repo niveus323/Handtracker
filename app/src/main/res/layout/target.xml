@@ -6,7 +6,7 @@
     android:visibility="visible">
 
     <ImageView
-        android:id="@+id/imageView"
+        android:id="@+id/targetImage"
         style="@style/targetItem"
         android:contentDescription="@string/content_desc_target"
         android:src="@drawable/ic_target"

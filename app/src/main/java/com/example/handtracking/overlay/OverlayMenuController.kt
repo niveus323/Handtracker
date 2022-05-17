@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.PixelFormat
+import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.view.*
 import android.widget.ImageView
@@ -13,9 +14,12 @@ import androidx.annotation.IdRes
 import androidx.annotation.VisibleForTesting
 import androidx.core.view.forEach
 import com.example.handtracking.R
+import com.example.handtracking.engine.mediapipe.HandsTracker
 import com.example.handtracking.extensions.ScreenMetrics
+import java.util.*
+import kotlin.concurrent.timer
 
-abstract class OverlayMenuController(context: Context) : OverlayController(context) {
+abstract class OverlayMenuController(context: Context) : OverlayController(context), HandsTracker.HandResultListener {
 
     @VisibleForTesting
     internal companion object {
@@ -42,7 +46,6 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
                 WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
         PixelFormat.TRANSLUCENT)
     /** The shared preference storing the position of the menu in order to save/restore the last user position. */
@@ -56,7 +59,10 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
     /** The root view of the menu overlay. Retrieved from [onCreateMenu] implementation. */
     private var menuLayout: ViewGroup? = null
     /** The layout parameters of the overlay view. */
-    private var overlayLayoutParams:  WindowManager.LayoutParams? = null
+    private lateinit var overlayLayoutParams:  WindowManager.LayoutParams
+    /** Another view to mark up the Mediapipe Hands finger. Retrieved from [onCreateTarget] implementation  */
+    private var targetLayout: ViewGroup? = null
+    private lateinit var targetLayoutParams:  WindowManager.LayoutParams
 
     /** The initial position of the overlay menu when pressing the move menu item. */
     private var moveInitialMenuPosition = 0 to 0
@@ -77,7 +83,16 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
     protected abstract fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup
 
     /**
-     * Creates the layout parameters for the [screenOverlayView].
+     * Creates the root view of the target overlay.
+     *
+     * @param layoutInflater the Android layout inflater.
+     *
+     * @return the target view.
+     */
+    protected abstract fun onCreateTarget(layoutInflater: LayoutInflater): ViewGroup
+
+    /**
+     * Creates the layout parameters for the [overlayLayoutParams].
      * Default implementation uses the same parameters as the floating menu, but in fullscreen.
      *
      * @return the layout parameters to apply to the overlay view.
@@ -93,9 +108,13 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
     @CallSuper
     override fun onCreate() {
         // First, call implementation methods to check what we should display
-        menuLayout = onCreateMenu(context.getSystemService(LayoutInflater::class.java))
+        val layoutInflater = context.getSystemService(LayoutInflater::class.java)
+        menuLayout = onCreateMenu(layoutInflater)
         overlayLayoutParams = onCreateOverlayViewLayoutParams()
-
+        targetLayout = onCreateTarget(layoutInflater)
+        targetLayoutParams = WindowManager.LayoutParams().apply {
+            copyFrom(overlayLayoutParams)
+        }
         // Set the clicks listener on the menu items
         menuLayout!!.let {
             val parentLayout = it.findViewById<ViewGroup>(R.id.view_group_buttons)
@@ -110,7 +129,8 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
 
         // Restore the last menu position, if any.
         menuLayoutParams.gravity = Gravity.TOP or Gravity.START
-        overlayLayoutParams?.gravity = Gravity.TOP or Gravity.START
+        overlayLayoutParams.gravity = Gravity.TOP or Gravity.START
+        targetLayoutParams.gravity = Gravity.TOP or Gravity.START
         loadMenuPosition(screenMetrics.orientation)
     }
 
@@ -118,14 +138,15 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
 
     @CallSuper
     override fun onStart() {
-        //screenMetrics = 화면...?
         screenMetrics.registerOrientationListener(orientationListener)
         windowManager.addView(menuLayout, menuLayoutParams)
+        windowManager.addView(targetLayout, targetLayoutParams)
     }
 
     @CallSuper
     override fun onStop() {
         windowManager.removeView(menuLayout)
+        windowManager.removeView(targetLayout)
 
         screenMetrics.unregisterOrientationListener()
     }
@@ -134,8 +155,8 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
     override fun onDismissed() {
         // Save last user position
         saveMenuPosition(screenMetrics.orientation)
-
         menuLayout = null
+        targetLayout = null
     }
 
     /**
@@ -182,6 +203,7 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
 
     /** */
     protected fun <T: View> getMenuItemView(@IdRes viewId: Int): T? = menuLayout?.findViewById(viewId)
+    protected fun <T: View> getTargetItemView(@IdRes viewId: Int): T? = targetLayout?.findViewById(viewId)
 
     /**
      * Called when the user touch the [R.id.btn_move] menu item.
@@ -277,5 +299,67 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
                 .putInt(PREFERENCE_MENU_Y_PORTRAIT_KEY, menuLayoutParams.y)
                 .apply()
         }
+    }
+
+    /**
+     * Called when HandsTracker .
+     * Handle x,y position of finger tip to move [targetLayout]
+     *
+     * @param x, y position of finger tip detected by [HandsTracker]
+     *
+     */
+    override fun onHandResultDetected(x:Float, y:Float) {
+        targetLayoutParams.x = x.toInt()
+        targetLayoutParams.y = y.toInt()
+        targetLayout?.post {
+            windowManager.updateViewLayout(targetLayout, targetLayoutParams)
+        }
+        if(checkCollisionWithView(getMenuItemView<View>(R.id.btn_feedback)!!)){
+            //Timer 돌려서 0.3초마다? Animation 갱신하고 3초 지나면 Button UI를 보이는걸로.
+            //Button UI 표기가 가능해지면 Animation을 붙인다.
+            startTimer()
+        }else{
+            stopTimer()
+        }
+    }
+
+    private var isTimerStarted = false
+    private var time:Int = 0
+    private var timer: Timer?= null
+
+    private fun startTimer() {
+        if(isTimerStarted) return
+        timer = timer(period = 3000, initialDelay = 1000) {
+            time++
+            if(time >= 3){
+                val buttongroup = getMenuItemView<ViewGroup>(R.id.view_group_buttons)
+                buttongroup?.post{
+                    buttongroup.visibility = View.VISIBLE
+                }
+
+
+//                stopTimer()
+            }
+        }
+        isTimerStarted = true
+    }
+    private fun stopTimer() {
+        timer?.cancel()
+        time = 0
+        isTimerStarted = false
+    }
+
+    private fun checkCollisionWithView(view: View): Boolean {
+        val r1 = Rect(menuLayoutParams.x + view.left,
+            menuLayoutParams.y + view.top,
+            menuLayoutParams.x + view.right,
+            menuLayoutParams.y + view.bottom)
+        val targetItem = getTargetItemView<View>(R.id.targetImage)!!
+        val r2 = Rect(targetLayoutParams.x + targetItem.left,
+            targetLayoutParams.y + targetItem.top,
+            targetLayoutParams.x + targetItem.right,
+            targetLayoutParams.y + targetItem.bottom)
+
+        return r1.intersect(r2)
     }
 }

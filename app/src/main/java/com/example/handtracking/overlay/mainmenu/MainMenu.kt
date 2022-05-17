@@ -3,6 +3,7 @@ package com.example.handtracking.overlay.mainmenu
 import android.content.Context
 import android.content.Intent
 import android.os.Environment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.WindowManager
@@ -22,7 +23,9 @@ class MainMenu(context: Context) : OverlayMenuController(context){
     private lateinit var outputFolder : File
     private lateinit var handsTracker: HandsTracker
 
+
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup = layoutInflater.inflate(R.layout.overlay_menu, null) as ViewGroup
+    override fun onCreateTarget(layoutInflater: LayoutInflater): ViewGroup = layoutInflater.inflate(R.layout.target, null) as ViewGroup
     override fun onCreateOverlayViewLayoutParams(): WindowManager.LayoutParams = super.onCreateOverlayViewLayoutParams().apply {
         flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
@@ -36,8 +39,9 @@ class MainMenu(context: Context) : OverlayMenuController(context){
         val outputPath = context.getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS+File.separator+"Handtracking")
         outputPath?.mkdirs()
         outputFolder = File("$outputPath")
-        handsTracker = HandsTracker(context, getMenuItemView(R.id.frameLayout)!!,screenMetrics)
-        handsTracker.onCreate(this)
+        handsTracker = HandsTracker(context, this)
+        handsTracker.onCreate(getMenuItemView(R.id.frameLayout)!!)
+        handsTracker.handResultListener = this
 //        camera = Camera(context, getMenuItemView(R.id.surfaceView)!!)
 //        camera.initialize()
     }
@@ -77,10 +81,10 @@ class MainMenu(context: Context) : OverlayMenuController(context){
 
     override fun onMenuItemClicked(viewId: Int) {
         when (viewId) {
-            R.id.btn_play -> viewModel?.playTap()
-            R.id.btn_play2 -> viewModel?.playZoom()
+//            R.id.btn_play -> viewModel?.playTap()
+//            R.id.btn_play2 -> viewModel?.playZoom()
             R.id.btn_stop -> dismiss()
-            R.id.btn_record -> {
+//            R.id.btn_record -> {
 //                if(isRecording) {
 //                    val intent = camera.stopRecording()
 ////                    setMenuVisibility(View.GONE)
@@ -88,10 +92,26 @@ class MainMenu(context: Context) : OverlayMenuController(context){
 //                }
 //                else camera.startRecording()
 //                isRecording = !isRecording
-            }
+//            }
         }
     }
 
+    /**
+     * Called when HandsTracker .
+     * Handle x,y position of finger tip to move [targetLayout]
+     * convert HandsResult position to Screen position
+     * then, call super with param [screenX], [screenY]
+     *
+     * @param x, y position of finger tip detected by [HandsTracker]
+     *
+     */
+    override fun onHandResultDetected(x: Float, y: Float) {
+        val displaySize = screenMetrics.screenSize
+        val screenX = x * displaySize.x.toFloat()
+        val screenY = y * displaySize.y.toFloat()
+        super.onHandResultDetected(screenX, screenY)
+        Log.i(TAG, "Target Position: ($screenX, $screenY)")
+    }
 
     private var TAG = "MainMenu"
 }
