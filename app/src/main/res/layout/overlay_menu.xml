@@ -1,25 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-    <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:visibility="visible">
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:visibility="visible">
+        android:visibility="visible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <RelativeLayout
-            android:id="@+id/relativeLayout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="visible"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <!--            android:layout_width="52dp - 200dp"-->
-            <!--            android:layout_height="52dp - 200dp"-->
-
+        <androidx.cardview.widget.CardView
+            style="@style/OverlayCardView">
             <ImageButton
                 android:id="@+id/btn_feedback"
                 style="@style/feedbackIcon"
@@ -28,61 +26,66 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@android:drawable/ic_dialog_alert" />
-
-            <FrameLayout
-                android:id="@+id/frameLayout"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
-                android:visibility="invisible">
-
-                <!--                <SurfaceView-->
-                <!--                    android:id="@+id/surfaceView"-->
-                <!--                    android:layout_width="match_parent"-->
-                <!--                    android:layout_height="match_parent" />-->
-            </FrameLayout>
-
-        </RelativeLayout>
-
-        <androidx.cardview.widget.CardView
-            style="@style/OverlayCardView">
-
-            <LinearLayout
-                android:id="@+id/view_group_buttons"
-                style="@style/OverlayButtonsLayout"
-                android:visibility="gone">
-
-                <ImageButton
-                    android:id="@+id/btn_tap"
-                    style="@style/OverlayButton"
-                    android:contentDescription="@string/content_desc_play_scenario_Tap"
-                    android:src="@drawable/ic_touch"
-                    tools:ignore="RedundantDescriptionCheck" />
-
-                <ImageButton
-                    android:id="@+id/btn_slide"
-                    style="@style/OverlayButton"
-                    android:contentDescription="@string/content_desc_play_scenario_Zoom"
-                    android:src="@drawable/ic_slide" />
-
-                <ImageButton
-                    android:id="@+id/btn_drag"
-                    style="@style/OverlayButton"
-                    android:contentDescription="@string/content_desc_stop_recorder"
-                    android:src="@drawable/ic_drag" />
-
-                <ImageButton
-                    android:id="@+id/btn_stop"
-                    style="@style/OverlayButton"
-                    android:contentDescription="@string/content_desc_stop_clicker"
-                    android:src="@drawable/ic_stop" />
-
-                <ImageButton
-                    android:id="@+id/btn_move"
-                    style="@style/OverlayButton"
-                    android:contentDescription="@string/content_desc_move_menu"
-                    android:src="@drawable/ic_move" />
-
-            </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-    </LinearLayout>
+
+        <!--            android:layout_width="52dp - 200dp"-->
+        <!--            android:layout_height="52dp - 200dp"-->
+        <FrameLayout
+            android:id="@+id/frameLayout"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:visibility="invisible">
+
+            <!--                <SurfaceView-->
+            <!--                    android:id="@+id/surfaceView"-->
+            <!--                    android:layout_width="match_parent"-->
+            <!--                    android:layout_height="match_parent" />-->
+        </FrameLayout>
+
+    </RelativeLayout>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardView"
+        style="@style/OverlayCardView"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/view_group_buttons"
+            style="@style/OverlayButtonsLayout">
+
+            <ImageButton
+                android:id="@+id/btn_tap"
+                style="@style/OverlayButton"
+                android:contentDescription="@string/content_desc_play_scenario_Tap"
+                android:src="@drawable/ic_touch"
+                tools:ignore="RedundantDescriptionCheck" />
+
+            <ImageButton
+                android:id="@+id/btn_slide"
+                style="@style/OverlayButton"
+                android:contentDescription="@string/content_desc_play_scenario_Zoom"
+                android:src="@drawable/ic_slide" />
+
+            <ImageButton
+                android:id="@+id/btn_drag"
+                style="@style/OverlayButton"
+                android:contentDescription="@string/content_desc_stop_recorder"
+                android:src="@drawable/ic_drag" />
+
+            <ImageButton
+                android:id="@+id/btn_dismiss"
+                style="@style/OverlayButton"
+                android:contentDescription="@string/content_desc_stop_clicker"
+                android:src="@drawable/ic_stop" />
+
+            <ImageButton
+                android:id="@+id/btn_move"
+                style="@style/OverlayButton"
+                android:contentDescription="@string/content_desc_move_menu"
+                android:src="@drawable/ic_move" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+</LinearLayout>

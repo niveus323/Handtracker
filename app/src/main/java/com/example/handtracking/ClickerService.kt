@@ -6,9 +6,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
-import android.util.Log
-import android.view.GestureDetector
-import android.view.MotionEvent
 import android.view.accessibility.AccessibilityEvent
 import androidx.core.app.NotificationCompat
 import com.example.handtracking.activity.MainActivity
@@ -39,7 +36,6 @@ class ClickerService : AccessibilityService() {
     private var gestureEngine: GestureEngine? = null
     private var rootOverlayController: OverlayController? = null
     private var isStarted: Boolean = false
-    private var gestureDetector: GestureDetector? = null
 
     inner class LocalService {
 
@@ -59,8 +55,6 @@ class ClickerService : AccessibilityService() {
             rootOverlayController = MainMenu(this@ClickerService).apply {
                 create(::stop)
             }
-
-            gestureDetector = GestureDetector(this@ClickerService, MyGestureListener())
 
         }
 
@@ -82,24 +76,6 @@ class ClickerService : AccessibilityService() {
             gestureEngine = null
 
             stopForeground(true)
-        }
-
-        private inner class MyGestureListener : GestureDetector.SimpleOnGestureListener() {
-            override fun onDown(e: MotionEvent?): Boolean {
-                Log.w(TAG, "Tap (%d, %d)".format(e?.x, e?.y))
-                return super.onDown(e)
-            }
-
-            override fun onFling(
-                e1: MotionEvent?,
-                e2: MotionEvent?,
-                velocityX: Float,
-                velocityY: Float
-            ): Boolean {
-                return super.onFling(e1, e2, velocityX, velocityY)
-            }
-
-            private val TAG = "GestureListener"
         }
     }
 

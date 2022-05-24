@@ -3,7 +3,6 @@ package com.example.handtracking.engine.mediapipe
 import android.app.Activity
 import android.content.Context
 import android.graphics.SurfaceTexture
-import android.util.Log
 import android.util.Size
 import androidx.lifecycle.LifecycleOwner
 import com.google.mediapipe.components.*
@@ -98,13 +97,6 @@ class CameraInput {
     private fun updateOutputSize(width: Int, height: Int) {
         val displaySize = cameraHelper.computeDisplaySizeFromViewSize(Size(width, height))
         val isCameraRotated = cameraHelper.isCameraRotated
-        Log.i(
-            TAG,
-            "Set camera output texture frame size to width="
-                    + displaySize.width
-                    + " , height="
-                    + displaySize.height
-        )
         // Configure the output width and height as the computed
         // display size.
         converter!!.setDestinationSize(

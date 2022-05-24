@@ -42,16 +42,16 @@
     <style name="feedbackIcon">
         <item name="android:layout_width">@dimen/feedback_icon_size</item>
         <item name="android:layout_height">@dimen/feedback_icon_size</item>
-        <item name="android:background">@color/overlayMenuBackground</item>
-        <item name="android:tint">@color/overlayMenuButtons</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:fillColor">@color/overlayMenuButtons</item>
         <item name="android:scaleType">fitCenter</item>
+
     </style>
 
     <style name="targetItem">
         <item name="android:layout_width">@dimen/target_item_size</item>
         <item name="android:layout_height">@dimen/target_item_size</item>
         <item name="android:background">@android:color/transparent</item>
-        <item name="android:tint">@color/red_ko</item>
         <item name="android:scaleType">fitCenter</item>
     </style>
 
@@ -88,6 +88,10 @@
         <item name="android:textSize">@dimen/text_size_dialog_title</item>
         <item name="android:textAppearance">@style/TextAppearance.AppCompat.Title</item>
         <item name="android:singleLine">true</item>
+    </style>
+
+    <style name="progressBar" parent="Widget.AppCompat.ProgressBar.Horizontal">
+        <item name="colorAccent">@color/red_ko</item>
     </style>
 
 </resources>

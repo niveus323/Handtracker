@@ -8,16 +8,14 @@ import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.view.*
 import android.widget.ImageView
+import android.widget.ProgressBar
 import androidx.annotation.CallSuper
 import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
 import androidx.annotation.VisibleForTesting
-import androidx.core.view.forEach
 import com.example.handtracking.R
 import com.example.handtracking.engine.mediapipe.HandsTracker
 import com.example.handtracking.extensions.ScreenMetrics
-import java.util.*
-import kotlin.concurrent.timer
 
 abstract class OverlayMenuController(context: Context) : OverlayController(context), HandsTracker.HandResultListener {
 
@@ -61,8 +59,9 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
     /** The layout parameters of the overlay view. */
     private lateinit var overlayLayoutParams:  WindowManager.LayoutParams
     /** Another view to mark up the Mediapipe Hands finger. Retrieved from [onCreateTarget] implementation  */
-    private var targetLayout: ViewGroup? = null
-    private lateinit var targetLayoutParams:  WindowManager.LayoutParams
+    private var cursorLayout: ViewGroup? = null
+    protected lateinit var cursorItem: ProgressBar
+    private lateinit var cursorLayoutParams:  WindowManager.LayoutParams
 
     /** The initial position of the overlay menu when pressing the move menu item. */
     private var moveInitialMenuPosition = 0 to 0
@@ -111,42 +110,29 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
         val layoutInflater = context.getSystemService(LayoutInflater::class.java)
         menuLayout = onCreateMenu(layoutInflater)
         overlayLayoutParams = onCreateOverlayViewLayoutParams()
-        targetLayout = onCreateTarget(layoutInflater)
-        targetLayoutParams = WindowManager.LayoutParams().apply {
+        cursorLayout = onCreateTarget(layoutInflater)
+        cursorLayoutParams = WindowManager.LayoutParams().apply {
             copyFrom(overlayLayoutParams)
-        }
-        // Set the clicks listener on the menu items
-        menuLayout!!.let {
-            val parentLayout = it.findViewById<ViewGroup>(R.id.view_group_buttons)
-            parentLayout.forEach { view ->
-                @SuppressLint("ClickableViewAccessibility") // View is only drag and drop, no click
-                when (view.id) {
-                    R.id.btn_move -> view.setOnTouchListener { _: View, event: MotionEvent -> onMoveTouched(event) }
-                    else -> view.setOnClickListener { v -> onMenuItemClicked(v.id) }
-                }
-            }
         }
 
         // Restore the last menu position, if any.
         menuLayoutParams.gravity = Gravity.TOP or Gravity.START
         overlayLayoutParams.gravity = Gravity.TOP or Gravity.START
-        targetLayoutParams.gravity = Gravity.TOP or Gravity.START
+        cursorLayoutParams.gravity = Gravity.TOP or Gravity.START
         loadMenuPosition(screenMetrics.orientation)
     }
-
-    protected open fun onMenuItemClicked(@IdRes viewId: Int): Unit? = null
 
     @CallSuper
     override fun onStart() {
         screenMetrics.registerOrientationListener(orientationListener)
         windowManager.addView(menuLayout, menuLayoutParams)
-        windowManager.addView(targetLayout, targetLayoutParams)
+        windowManager.addView(cursorLayout, cursorLayoutParams)
     }
 
     @CallSuper
     override fun onStop() {
         windowManager.removeView(menuLayout)
-        windowManager.removeView(targetLayout)
+        windowManager.removeView(cursorLayout)
 
         screenMetrics.unregisterOrientationListener()
     }
@@ -155,8 +141,6 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
     override fun onDismissed() {
         // Save last user position
         saveMenuPosition(screenMetrics.orientation)
-        menuLayout = null
-        targetLayout = null
     }
 
     /**
@@ -203,35 +187,7 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
 
     /** */
     protected fun <T: View> getMenuItemView(@IdRes viewId: Int): T? = menuLayout?.findViewById(viewId)
-    protected fun <T: View> getTargetItemView(@IdRes viewId: Int): T? = targetLayout?.findViewById(viewId)
-
-    /**
-     * Called when the user touch the [R.id.btn_move] menu item.
-     * Handle the long press and move on this button in order to drag and drop the overlay menu on the screen.
-     *
-     * @param event the touch event occurring on the menu item.
-     *
-     * @return true if the event is handled, false if not.
-     */
-    private fun onMoveTouched(event: MotionEvent) : Boolean {
-        return when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                menuLayout!!.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-                moveInitialMenuPosition = menuLayoutParams.x to menuLayoutParams.y
-                moveInitialTouchPosition = event.rawX.toInt() to event.rawY.toInt()
-                true
-            }
-            MotionEvent.ACTION_MOVE -> {
-                setMenuLayoutPosition(
-                    moveInitialMenuPosition.first + (event.rawX.toInt() - moveInitialTouchPosition.first),
-                    moveInitialMenuPosition.second + (event.rawY.toInt() - moveInitialTouchPosition.second)
-                )
-                windowManager.updateViewLayout(menuLayout, menuLayoutParams)
-                true
-            }
-            else -> false
-        }
-    }
+    protected fun <T: View> getTargetItemView(@IdRes viewId: Int): T? = cursorLayout?.findViewById(viewId)
 
     /**
      * Safe setter for the position of the overlay menu ensuring it will not be displayed outside the screen.
@@ -303,63 +259,49 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
 
     /**
      * Called when HandsTracker .
-     * Handle x,y position of finger tip to move [targetLayout]
+     * Handle x,y position of finger tip to move [cursorLayout]
      *
      * @param x, y position of finger tip detected by [HandsTracker]
      *
      */
     override fun onHandResultDetected(x:Float, y:Float) {
-        targetLayoutParams.x = x.toInt()
-        targetLayoutParams.y = y.toInt()
-        targetLayout?.post {
-            windowManager.updateViewLayout(targetLayout, targetLayoutParams)
-        }
-        if(checkCollisionWithView(getMenuItemView<View>(R.id.btn_feedback)!!)){
-            //Timer 돌려서 0.3초마다? Animation 갱신하고 3초 지나면 Button UI를 보이는걸로.
-            //Button UI 표기가 가능해지면 Animation을 붙인다.
-            startTimer()
-        }else{
-            stopTimer()
+        cursorLayout?.post {
+            cursorItem.x = x
+            cursorItem.y = y
+            windowManager.updateViewLayout(cursorLayout, cursorLayoutParams)
         }
     }
 
-    private var isTimerStarted = false
-    private var time:Int = 0
-    private var timer: Timer?= null
-
-    private fun startTimer() {
-        if(isTimerStarted) return
-        timer = timer(period = 3000, initialDelay = 1000) {
-            time++
-            if(time >= 3){
-                val buttongroup = getMenuItemView<ViewGroup>(R.id.view_group_buttons)
-                buttongroup?.post{
-                    buttongroup.visibility = View.VISIBLE
-                }
-
-
-//                stopTimer()
-            }
-        }
-        isTimerStarted = true
-    }
-    private fun stopTimer() {
-        timer?.cancel()
-        time = 0
-        isTimerStarted = false
-    }
-
-    private fun checkCollisionWithView(view: View): Boolean {
-        val r1 = Rect(menuLayoutParams.x + view.left,
-            menuLayoutParams.y + view.top,
-            menuLayoutParams.x + view.right,
-            menuLayoutParams.y + view.bottom)
-        val targetItem = getTargetItemView<View>(R.id.targetImage)!!
-        val r2 = Rect(targetLayoutParams.x + targetItem.left,
-            targetLayoutParams.y + targetItem.top,
-            targetLayoutParams.x + targetItem.right,
-            targetLayoutParams.y + targetItem.bottom)
+    protected fun isCursorIntersected(view: View): Boolean {
+        val viewLocation = IntArray(2)
+        view.getLocationOnScreen(viewLocation)
+        val r1 = Rect(viewLocation[0], viewLocation[1], viewLocation[0] + view.width, viewLocation[1] + view.height)
+        val r2 = Rect(cursorItem.x.toInt(), cursorItem.y.toInt(), cursorItem.x.toInt() + cursorItem.width, cursorItem.y.toInt() + cursorItem.height)
 
         return r1.intersect(r2)
+    }
+
+    protected val cursorPosition:Array<Float>
+        get() {
+            return arrayOf(cursorItem.x, cursorItem.y)
+        }
+
+    protected fun moveMenuLayout() {
+        menuLayout?.post {
+            setMenuLayoutPosition(cursorItem.x.toInt()-deltaX, cursorItem.y.toInt()-deltaY)
+            windowManager.updateViewLayout(menuLayout, menuLayoutParams)
+        }
+    }
+
+    private var deltaX : Int = 0
+    private var deltaY : Int = 0
+
+    protected fun setDelta(moveView: View, menuView: View){
+        val menuViewLocation = IntArray(2)
+        menuView.getLocationOnScreen(menuViewLocation)
+        val moveViewLocation = IntArray(2)
+        moveView.getLocationOnScreen(moveViewLocation)
+        deltaX = moveViewLocation[0] - menuViewLocation[0]
+        deltaY = moveViewLocation[1] - menuViewLocation[1]
     }
 }

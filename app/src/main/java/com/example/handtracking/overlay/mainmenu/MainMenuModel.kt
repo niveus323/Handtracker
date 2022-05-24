@@ -8,9 +8,15 @@ class MainMenuModel(context: Context) : OverlayViewModel(context) {
 
     private var gestureEngine: GestureEngine = GestureEngine.getGestureEngine(context)
 
-    fun playTap() {
+    fun playTap(pos: Array<Float>) {
         gestureEngine.apply {
-            processTap()
+            processTap(pos)
+        }
+    }
+
+    fun playSlide(from: Array<Float>, to: Array<Float>) {
+        gestureEngine.apply {
+            processSlide(from, to)
         }
     }
 
@@ -18,6 +24,18 @@ class MainMenuModel(context: Context) : OverlayViewModel(context) {
         gestureEngine.apply {
             processZoomIn()
 //            processZoomOut()
+        }
+    }
+
+    fun playDrag(pos: Array<Float>) {
+        gestureEngine.apply {
+            processDrag(pos)
+        }
+    }
+
+    fun terminateDrag(pos: Array<Float>) {
+        gestureEngine.apply {
+            this.terminateDrag(pos)
         }
     }
 }

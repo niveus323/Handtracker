@@ -5,11 +5,48 @@
     android:layout_height="wrap_content"
     android:visibility="visible">
 
-    <ImageView
-        android:id="@+id/targetImage"
-        style="@style/targetItem"
-        android:contentDescription="@string/content_desc_target"
-        android:src="@drawable/ic_target"
+    <ProgressBar
+        android:id="@+id/cursorImage"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/progress_background"
+        android:indeterminate="false"
+        android:max="30"
+        android:progress="0"
+        android:progressDrawable="@drawable/progress"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/firstTarget"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/target_first"
+        android:indeterminate="false"
+        android:max="30"
+        android:progress="0"
+        android:progressDrawable="@drawable/progress"
+        android:backgroundTint="#44FF8A"
+        android:progressTint="#4FD04F"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/secondTarget"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@drawable/progress_background"
+        android:indeterminate="false"
+        android:max="30"
+        android:progress="0"
+        android:progressDrawable="@drawable/target_second"
+        android:backgroundTint="#FF448A"
+        android:progressTint="#F03F3F"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

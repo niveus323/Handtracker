@@ -19,6 +19,9 @@ class HandsTracker(private var context: Context, private var lifecycleOwner: Lif
     private lateinit var glSurfaceView: SolutionGlSurfaceView<HandsResult>
     var handResultListener: HandResultListener? = null
 
+    interface HandResultListener {
+        fun onHandResultDetected(x: Float, y: Float)
+    }
 
     fun onCreate(frameLayout: FrameLayout) {
         initializeCameraInput()
@@ -72,8 +75,8 @@ class HandsTracker(private var context: Context, private var lifecycleOwner: Lif
                     handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.INDEX_FINGER_TIP].y
                 )
             }
-            glSurfaceView.setRenderData(handsResult)
-            glSurfaceView.requestRender()
+//            glSurfaceView.setRenderData(handsResult)
+//            glSurfaceView.requestRender()
         }
 
         if (inputSource == InputSource.CAMERA) {
@@ -82,9 +85,9 @@ class HandsTracker(private var context: Context, private var lifecycleOwner: Lif
 
         frameLayout.removeAllViewsInLayout()
         frameLayout.addView(glSurfaceView)
-        glSurfaceView.visibility = View.VISIBLE
+        glSurfaceView.visibility = View.INVISIBLE
         frameLayout.requestLayout()
-        frameLayout.visibility = View.VISIBLE
+        frameLayout.visibility = View.INVISIBLE
     }
 
     private fun startCamera(lifecycleOwner: LifecycleOwner) {
@@ -101,8 +104,12 @@ class HandsTracker(private var context: Context, private var lifecycleOwner: Lif
     private fun stopCurrentPipeline() {
         cameraInput.setNewFrameListener(null)
         cameraInput.close()
-        glSurfaceView.visibility = View.GONE
+        glSurfaceView.post{
+            glSurfaceView.visibility = View.GONE
+        }
+        if(handResultListener != null) handResultListener = null
         hands.close()
+
     }
 
     companion object {
@@ -114,10 +121,6 @@ class HandsTracker(private var context: Context, private var lifecycleOwner: Lif
             VIDEO,
             CAMERA,
         }
-    }
-
-    interface HandResultListener {
-        fun onHandResultDetected(x: Float, y: Float)
     }
 
 }

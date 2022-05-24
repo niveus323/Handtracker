@@ -67,22 +67,44 @@ class GestureEngine(context: Context) {
         }
     }
 
-    fun processTap() {
-        process(mutableListOf(Action.Tap(1270, 2573)))
+    fun processTap(pos: Array<Float>) {
+        process(mutableListOf(Action.Tap(pos[0], pos[1])))
+    }
+
+    fun processSlide(from: Array<Float>, to: Array<Float>) {
+        process(mutableListOf(Action.Slide(from[0] ,from[1], to[0], to[1])))
+    }
+
+    fun processDrag(pos: Array<Float>) {
+        process(mutableListOf(Action.Drag(pos[0] ,pos[1])))
+    }
+
+    fun terminateDrag(pos: Array<Float>) {
+        processingJob = processingScope?.launch {
+            actionExecutor?.terminateDrag(Action.Drag(pos[0], pos[1]))
+        }
+    }
+
+    fun processZoom(pos1: Array<Float>, pos2: Array<Float>) {
+        process(mutableListOf(Action.Zoom(pos1[0], pos1[1], pos2[0], pos2[1])))
+    }
+
+    fun terminateZoom() {
+        actionExecutor?.terminateZoom()
     }
 
     fun processZoomIn() {
         process(mutableListOf(
-            Action.Zoom(300,300, 500,500),
-            Action.Zoom(250,250, 500,500)
+            Action.Zoom(300F,300F, 500F,500F),
+            Action.Zoom(250F,250F, 500F,500F)
         ))
         actionExecutor?.terminateZoom()
     }
 
     fun processZoomOut() {
         process(mutableListOf(
-            Action.Zoom(250,250, 500,500),
-            Action.Zoom(300,300, 500,500)
+            Action.Zoom(250F,250F, 500F,500F),
+            Action.Zoom(300F,300F, 500F,500F)
         ))
         actionExecutor?.terminateZoom()
     }
