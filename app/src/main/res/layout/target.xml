@@ -24,13 +24,13 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:background="@drawable/target_first"
+        android:backgroundTint="#44FF8A"
         android:indeterminate="false"
         android:max="30"
         android:progress="0"
         android:progressDrawable="@drawable/progress"
-        android:backgroundTint="#44FF8A"
         android:progressTint="#4FD04F"
-        android:visibility="gone"
+        android:visibility="invisible"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -40,13 +40,13 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:background="@drawable/progress_background"
+        android:backgroundTint="#FF448A"
         android:indeterminate="false"
         android:max="30"
         android:progress="0"
         android:progressDrawable="@drawable/target_second"
-        android:backgroundTint="#FF448A"
         android:progressTint="#F03F3F"
-        android:visibility="gone"
+        android:visibility="invisible"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

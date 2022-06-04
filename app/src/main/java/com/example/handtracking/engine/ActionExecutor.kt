@@ -54,7 +54,7 @@ internal class ActionExecutor(private val gestureExecutor: (GestureDescription) 
         withContext(Dispatchers.Main) {
             gestureExecutor(clickBuilder.build())
         }
-        delay(10)
+        delay(20)
     }
 
     private var prevStroke: GestureDescription.StrokeDescription? = null
@@ -71,7 +71,6 @@ internal class ActionExecutor(private val gestureExecutor: (GestureDescription) 
             time = 50
             dragPath.moveTo(prevDrag!!.x!!, prevDrag!!.y!!)
             dragPath.lineTo(drag.x!!, drag.y!!)
-            Log.i(TAG, "Last Drag from (${prevDrag!!.x!!}, ${prevDrag!!.y!!}) , to (${drag.x}, ${drag.y})")
             prevStroke!!.continueStroke(dragPath, 0, time, true)
         }
         clickBuilder.addStroke(strokeDescription)

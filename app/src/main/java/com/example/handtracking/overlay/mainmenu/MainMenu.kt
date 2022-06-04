@@ -13,11 +13,15 @@ import com.example.handtracking.activity.MainActivity
 import com.example.handtracking.engine.Camera
 import com.example.handtracking.engine.mediapipe.HandsTracker
 import com.example.handtracking.overlay.OverlayMenuController
+import com.google.mediapipe.solutions.hands.HandLandmark
+import com.google.mediapipe.solutions.hands.HandsResult
 import java.util.*
 import kotlin.concurrent.timer
 import kotlin.math.abs
+import kotlin.math.pow
+import kotlin.math.sqrt
 
-class MainMenu(context: Context) : OverlayMenuController(context){
+class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.HandResultListener {
     private var viewModel: MainMenuModel? = MainMenuModel(context).apply {
         attachToLifecycle(this@MainMenu)
     }
@@ -27,10 +31,11 @@ class MainMenu(context: Context) : OverlayMenuController(context){
     private lateinit var cardView: View
     private lateinit var feedbackView: View
     private lateinit var btnViews: Array<View>
+
     private var feedbackState: FeedbackState = FeedbackState.UI_GONE
     private var isTimerStarted = false
     private var time:Int = 0
-    private var timer: Timer?= null
+    private var timer: Timer? = null
 
     override fun onCreateMenu(layoutInflater: LayoutInflater): ViewGroup = layoutInflater.inflate(R.layout.overlay_menu, null) as ViewGroup
     override fun onCreateTarget(layoutInflater: LayoutInflater): ViewGroup = layoutInflater.inflate(R.layout.target, null) as ViewGroup
@@ -39,7 +44,8 @@ class MainMenu(context: Context) : OverlayMenuController(context){
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
     }
 
     override fun onCreate() {
@@ -76,22 +82,65 @@ class MainMenu(context: Context) : OverlayMenuController(context){
 
     private var isRecording : Boolean = false
 
+    private fun calculatePosition(handsResult: HandsResult): Array<Float> {
+        val displaySize = screenMetrics.screenSize
+        // 관절 0-9 거리(민감도에 활용)
+        val zeroToNine = sqrt((handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.WRIST].x
+                - handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.MIDDLE_FINGER_MCP].x).pow(2)
+                + (handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.WRIST].y
+                - handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.MIDDLE_FINGER_MCP].y).pow(2))
+        // 민감도(거리가 멀어질수록 증가)
+        var sensitivity = 1 / (zeroToNine * 2)
+        if (sensitivity < 2) sensitivity = 2F
+
+        var normalx = handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.MIDDLE_FINGER_MCP].x
+        var normaly = handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.MIDDLE_FINGER_MCP].y
+        if (normalx > 1) normalx = 1F
+        if (normalx < 0) normalx = 0F
+        if (normaly > 1) normalx = 1F
+        if (normaly < 0) normaly = 0F
+        // 민감도에 따른 커서 조작 영역 설정
+        var pixelx = normalx * displaySize.x.toFloat()
+        var pixely = normaly * displaySize.y.toFloat()
+        val upperboundaryx = displaySize.x.toFloat() * (1 + (1 / sensitivity)) / 2
+        val upperboundaryy = displaySize.y.toFloat() * (1 + (1 / sensitivity)) / 2
+        val lowerboundaryx = displaySize.x.toFloat() * (1 - (1 / sensitivity)) / 2
+        val lowerboundaryy = displaySize.y.toFloat() * (1 - (1 / sensitivity)) / 2
+        if (pixelx > upperboundaryx) pixelx = upperboundaryx
+        if (pixelx < lowerboundaryx) pixelx = lowerboundaryx
+        if (pixely > upperboundaryy) pixely = upperboundaryy
+        if (pixely < lowerboundaryy) pixely = lowerboundaryy
+        // 커서 조작 영역에 따른 커서 좌표 설정
+        var x = (pixelx - lowerboundaryx) * sensitivity
+        var y = (pixely - lowerboundaryy) * sensitivity
+        // 커서 Boundary 지정
+        val boundaryx = displaySize.x.toFloat() * 0.9
+        val boundaryy = displaySize.y.toFloat() * 0.96
+        if (x > boundaryx) x = boundaryx.toFloat()
+        if (x < 0) x = 0F
+        if (y > boundaryy) y = boundaryy.toFloat()
+        if (y < 0) y = 0F
+
+        return arrayOf(x, y)
+    }
+
     /**
      * Called when HandsTracker Result Detected.
      * Handle x,y position of finger tip to move [targetLayout]
      * convert HandsResult position to Screen position
      * then, call super with param [screenX], [screenY]
      *
-     * @param x, y position of finger tip detected by [HandsTracker]
+     * @param  position of finger tip detected by [HandsTracker]
      *
      */
-    override fun onHandResultDetected(x: Float, y: Float) {
-        val displaySize = screenMetrics.screenSize
-        val screenX = x * displaySize.x.toFloat()
-        val screenY = y * displaySize.y.toFloat()
+    override fun onHandResultDetected(handsResult: HandsResult) {
+        val position = calculatePosition(handsResult)
+        setCursorPosition(position[0], position[1])
+        checkFeedbackState()
+    }
 
-        super.onHandResultDetected(screenX, screenY)
 
+    private fun checkFeedbackState() {
         /** UI_TAP, UI_SLIDE, UI_DRAG, UI_DISMISS, UI_MOVE, UI_VISIBLE 상태일때 [feedbackView], [cardView]의 충돌을 확인. */
         if(feedbackState < FeedbackState.UI_GONE && !isCursorIntersected(feedbackView) && !isCursorIntersected(cardView)){
             cardView.post{
@@ -230,6 +279,7 @@ class MainMenu(context: Context) : OverlayMenuController(context){
 
     private fun startTimer(onTimerEnd: () -> Unit) {
         if(isTimerStarted) return
+        isTimerStarted = true
         timer = timer(period = 50) {
             time++
             cursorItem.progress = time
@@ -238,7 +288,6 @@ class MainMenu(context: Context) : OverlayMenuController(context){
                 stopTimer()
             }
         }
-        isTimerStarted = true
     }
 
     private fun stopTimer() {

@@ -7,25 +7,33 @@ import android.widget.FrameLayout
 import androidx.lifecycle.LifecycleOwner
 import com.google.mediapipe.framework.TextureFrame
 import com.google.mediapipe.solutioncore.SolutionGlSurfaceView
-import com.google.mediapipe.solutions.hands.HandLandmark
 import com.google.mediapipe.solutions.hands.Hands
 import com.google.mediapipe.solutions.hands.HandsOptions
 import com.google.mediapipe.solutions.hands.HandsResult
+import kotlinx.coroutines.*
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 
 class HandsTracker(private var context: Context, private var lifecycleOwner: LifecycleOwner) {
     private lateinit var hands: Hands
     private var inputSource: InputSource = InputSource.UNKNOWN
     private lateinit var cameraInput: CameraInput
     private lateinit var glSurfaceView: SolutionGlSurfaceView<HandsResult>
+    private var processingScope: CoroutineScope? = null
+    private var processingJob: Job? = null
+
     var handResultListener: HandResultListener? = null
 
     interface HandResultListener {
-        fun onHandResultDetected(x: Float, y: Float)
+        fun onHandResultDetected(handsResult: HandsResult)
     }
 
     fun onCreate(frameLayout: FrameLayout) {
         initializeCameraInput()
         setupStreamingModePipeline(InputSource.CAMERA, frameLayout)
+        processingScope = CoroutineScope(Dispatchers.Default.limitedParallelism(1))
     }
 
     private fun initializeCameraInput() {
@@ -70,10 +78,8 @@ class HandsTracker(private var context: Context, private var lifecycleOwner: Lif
         glSurfaceView.setRenderInputImage(true)
         hands.setResultListener { handsResult: HandsResult? ->
             if (handsResult != null && !handsResult.multiHandLandmarks().isEmpty()) {
-                handResultListener?.onHandResultDetected(
-                    handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.INDEX_FINGER_TIP].x,
-                    handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.INDEX_FINGER_TIP].y
-                )
+                handResultListener?.onHandResultDetected(handsResult)
+//                coroutine(handsResult)
             }
 //            glSurfaceView.setRenderData(handsResult)
 //            glSurfaceView.requestRender()
@@ -88,6 +94,29 @@ class HandsTracker(private var context: Context, private var lifecycleOwner: Lif
         glSurfaceView.visibility = View.INVISIBLE
         frameLayout.requestLayout()
         frameLayout.visibility = View.INVISIBLE
+    }
+
+    private fun coroutine(handsResult: HandsResult){
+        CoroutineScope(Dispatchers.Main).launch {
+            withContext(CoroutineScope(Dispatchers.Default).coroutineContext) {
+                val url = "http://www.icehandtracking.com/gesture"
+                val okHttpClient = OkHttpClient()
+                val json = JSONObject()
+                var result = ""
+                    handsResult.multiHandLandmarks()[0].landmarkList.forEach {
+                    result += "${it.x} ${it.y} ${it.z}\n"
+                }
+                json.put("result", result )
+                val body = json.toString().toRequestBody()
+                val request = Request.Builder().url(url).post(body).build()
+                val response = okHttpClient.newCall(request).execute()
+                if(response.isSuccessful) {
+                    Log.i("HTML", response.toString())
+                }else{
+                    Log.w("HTML", "Response Failed")
+                }
+            }
+        }
     }
 
     private fun startCamera(lifecycleOwner: LifecycleOwner) {

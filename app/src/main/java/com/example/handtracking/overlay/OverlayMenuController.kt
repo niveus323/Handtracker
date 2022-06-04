@@ -17,7 +17,7 @@ import com.example.handtracking.R
 import com.example.handtracking.engine.mediapipe.HandsTracker
 import com.example.handtracking.extensions.ScreenMetrics
 
-abstract class OverlayMenuController(context: Context) : OverlayController(context), HandsTracker.HandResultListener {
+abstract class OverlayMenuController(context: Context) : OverlayController(context){
 
     @VisibleForTesting
     internal companion object {
@@ -44,7 +44,8 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
                 WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
         PixelFormat.TRANSLUCENT)
     /** The shared preference storing the position of the menu in order to save/restore the last user position. */
     private val sharedPreferences = context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE)
@@ -264,7 +265,7 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
      * @param x, y position of finger tip detected by [HandsTracker]
      *
      */
-    override fun onHandResultDetected(x:Float, y:Float) {
+    protected fun setCursorPosition(x:Float, y:Float) {
         cursorLayout?.post {
             cursorItem.x = x
             cursorItem.y = y
