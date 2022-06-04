@@ -97,7 +97,7 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
         var normaly = handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.MIDDLE_FINGER_MCP].y
         if (normalx > 1) normalx = 1F
         if (normalx < 0) normalx = 0F
-        if (normaly > 1) normalx = 1F
+        if (normaly > 1) normaly = 1F
         if (normaly < 0) normaly = 0F
         // 민감도에 따른 커서 조작 영역 설정
         var pixelx = normalx * displaySize.x.toFloat()
