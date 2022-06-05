@@ -14,6 +14,7 @@
         android:indeterminate="false"
         android:max="30"
         android:progress="0"
+        android:visibility="invisible"
         android:progressDrawable="@drawable/progress"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -30,7 +31,7 @@
         android:progress="0"
         android:progressDrawable="@drawable/progress"
         android:progressTint="#4FD04F"
-        android:visibility="invisible"
+        android:visibility="visible"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -46,7 +47,7 @@
         android:progress="0"
         android:progressDrawable="@drawable/target_second"
         android:progressTint="#F03F3F"
-        android:visibility="invisible"
+        android:visibility="visible"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

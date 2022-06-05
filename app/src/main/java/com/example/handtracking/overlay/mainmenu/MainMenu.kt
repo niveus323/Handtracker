@@ -56,6 +56,7 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
         handsTracker.onCreate(getMenuItemView(R.id.frameLayout)!!)
         handsTracker.handResultListener = this
         cursorItem = getTargetItemView(R.id.cursorImage)!!
+        doubleCursorItems = arrayOf(getTargetItemView(R.id.firstTarget)!!, getTargetItemView(R.id.secondTarget)!!)
         btnViews = arrayOf(getMenuItemView(R.id.btn_tap)!!
             ,getMenuItemView(R.id.btn_slide)!!,
             getMenuItemView(R.id.btn_drag)!!,
@@ -82,19 +83,19 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
 
     private var isRecording : Boolean = false
 
-    private fun calculatePosition(handsResult: HandsResult): Array<Float> {
+    private fun calculatePosition(handsResult: HandsResult, landmark: Int): Array<Float> {
         val displaySize = screenMetrics.screenSize
         // 관절 0-9 거리(민감도에 활용)
         val zeroToNine = sqrt((handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.WRIST].x
-                - handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.MIDDLE_FINGER_MCP].x).pow(2)
+                - handsResult.multiHandLandmarks()[0].landmarkList[landmark].x).pow(2)
                 + (handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.WRIST].y
-                - handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.MIDDLE_FINGER_MCP].y).pow(2))
+                - handsResult.multiHandLandmarks()[0].landmarkList[landmark].y).pow(2))
         // 민감도(거리가 멀어질수록 증가)
         var sensitivity = 1 / (zeroToNine * 2)
         if (sensitivity < 2) sensitivity = 2F
 
-        var normalx = handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.MIDDLE_FINGER_MCP].x
-        var normaly = handsResult.multiHandLandmarks()[0].landmarkList[HandLandmark.MIDDLE_FINGER_MCP].y
+        var normalx = handsResult.multiHandLandmarks()[0].landmarkList[landmark].x
+        var normaly = handsResult.multiHandLandmarks()[0].landmarkList[landmark].y
         if (normalx > 1) normalx = 1F
         if (normalx < 0) normalx = 0F
         if (normaly > 1) normaly = 1F
@@ -124,6 +125,8 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
         return arrayOf(x, y)
     }
 
+
+
     /**
      * Called when HandsTracker Result Detected.
      * Handle x,y position of finger tip to move [targetLayout]
@@ -134,8 +137,13 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
      *
      */
     override fun onHandResultDetected(handsResult: HandsResult) {
-        val position = calculatePosition(handsResult)
-        setCursorPosition(position[0], position[1])
+        val position = calculatePosition(handsResult, HandLandmark.MIDDLE_FINGER_MCP)
+        setCursorPosition(position, cursorItem)
+        val fingerTipPos = calculatePosition(handsResult, HandLandmark.INDEX_FINGER_TIP)
+        val thumbTipPos = calculatePosition(handsResult, HandLandmark.THUMB_TIP)
+        setCursorPosition(fingerTipPos, doubleCursorItems[0])
+        setCursorPosition(thumbTipPos, doubleCursorItems[1])
+
         checkFeedbackState()
     }
 

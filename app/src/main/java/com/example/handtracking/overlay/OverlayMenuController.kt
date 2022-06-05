@@ -62,6 +62,7 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
     /** Another view to mark up the Mediapipe Hands finger. Retrieved from [onCreateTarget] implementation  */
     private var cursorLayout: ViewGroup? = null
     protected lateinit var cursorItem: ProgressBar
+    protected lateinit var doubleCursorItems: Array<ProgressBar>
     private lateinit var cursorLayoutParams:  WindowManager.LayoutParams
 
     /** The initial position of the overlay menu when pressing the move menu item. */
@@ -265,10 +266,10 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
      * @param x, y position of finger tip detected by [HandsTracker]
      *
      */
-    protected fun setCursorPosition(x:Float, y:Float) {
+    protected fun setCursorPosition(pos: Array<Float>, view:View) {
         cursorLayout?.post {
-            cursorItem.x = x
-            cursorItem.y = y
+            view.x = pos[0]
+            view.y = pos[1]
             windowManager.updateViewLayout(cursorLayout, cursorLayoutParams)
         }
     }
