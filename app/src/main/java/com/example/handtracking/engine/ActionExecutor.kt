@@ -13,6 +13,8 @@ import kotlin.properties.Delegates
 
 internal class ActionExecutor(private val gestureExecutor: (GestureDescription) -> Unit) {
     private var prevZoom: Zoom? = null
+    private var prevDrag: Drag?= null
+    private var prevStroke: GestureDescription.StrokeDescription? = null
 
     suspend fun executeActions(actions: List<Action>) {
         actions.forEach { action ->
@@ -50,15 +52,27 @@ internal class ActionExecutor(private val gestureExecutor: (GestureDescription) 
         val clickBuilder = GestureDescription.Builder()
         slidePath.moveTo(slide.x1!!, slide.y1!!)
         slidePath.lineTo(slide.x2!!, slide.y2!!)
-        clickBuilder.addStroke(GestureDescription.StrokeDescription(slidePath, 0, 10))
+        clickBuilder.addStroke(GestureDescription.StrokeDescription(slidePath, 0, 20))
         withContext(Dispatchers.Main) {
             gestureExecutor(clickBuilder.build())
         }
         delay(20)
     }
 
-    private var prevStroke: GestureDescription.StrokeDescription? = null
-    private var prevDrag: Drag?= null
+    suspend fun terminateSlide(slide: Slide) {
+//        val dragPath = Path()
+//        dragPath.moveTo(prevSlide!!.x2!!, prevSlide!!.y2!!)
+//        dragPath.lineTo(slide.x2!!, slide.y2!!)
+//        val clickBuilder = GestureDescription.Builder()
+//        val strokeDescription = prevStroke!!.continueStroke(dragPath, 0, 1, false)
+//        clickBuilder.addStroke(strokeDescription)
+//        withContext(Dispatchers.Main) {
+//            gestureExecutor(clickBuilder.build())
+//        }
+        prevStroke = null
+    }
+
+
     private suspend fun executeDrag(drag: Drag) {
         val dragPath = Path()
         val clickBuilder = GestureDescription.Builder()
@@ -99,8 +113,6 @@ internal class ActionExecutor(private val gestureExecutor: (GestureDescription) 
     private suspend fun executeZoom(zoom: Zoom) {
         if(prevZoom == null) {
             prevZoom = zoom
-            Log.v(TAG, "prevZoom was null")
-            logPrevZoom()
         }else {
             //Duration 값은 제스처 인식 도입 후 값을 변경해보아야 함 
             val swipePath1 = Path()
@@ -116,8 +128,6 @@ internal class ActionExecutor(private val gestureExecutor: (GestureDescription) 
                 gestureExecutor(clickBuilder.build())
             }
             prevZoom = zoom
-            Log.w(TAG, "Zoom executed")
-            logPrevZoom()
             delay(200)
         }
     }
@@ -126,10 +136,6 @@ internal class ActionExecutor(private val gestureExecutor: (GestureDescription) 
     fun terminateZoom() {
         prevZoom = null
         Log.v(TAG, "prevZoom is null")
-    }
-
-    private fun logPrevZoom() {
-        Log.v(TAG, "prevZoom Changed : (%d,%d), (%d,%d)".format(prevZoom!!.x1, prevZoom!!.y1, prevZoom!!.x2, prevZoom!!.y2))
     }
 }
 

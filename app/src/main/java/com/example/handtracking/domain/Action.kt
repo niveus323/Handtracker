@@ -32,7 +32,7 @@ sealed class Action {
         override fun isComplete(): Boolean = x1 != null && y1 != null && x2 != null && y2 != null
     }
 
-    data class Drag(
+    data class Drag (
         var x: Float? = null,
         var y: Float? = null,
     ) : Action() {

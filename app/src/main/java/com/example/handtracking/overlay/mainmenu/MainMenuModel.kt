@@ -20,10 +20,14 @@ class MainMenuModel(context: Context) : OverlayViewModel(context) {
         }
     }
 
-    fun playZoom() {
+    fun playZoomIn() {
         gestureEngine.apply {
             processZoomIn()
-//            processZoomOut()
+        }
+    }
+    fun playZoomOut() {
+        gestureEngine.apply {
+            processZoomOut()
         }
     }
 
@@ -36,6 +40,12 @@ class MainMenuModel(context: Context) : OverlayViewModel(context) {
     fun terminateDrag(pos: Array<Float>) {
         gestureEngine.apply {
             this.terminateDrag(pos)
+        }
+    }
+
+    fun terminateSlide(from: Array<Float>, to: Array<Float>) {
+        gestureEngine.apply {
+            this.terminateSlide(from, to)
         }
     }
 }

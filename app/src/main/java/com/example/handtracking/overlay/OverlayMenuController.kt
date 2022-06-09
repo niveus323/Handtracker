@@ -9,6 +9,7 @@ import android.graphics.drawable.Drawable
 import android.view.*
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.annotation.CallSuper
 import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
@@ -270,6 +271,13 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
         cursorLayout?.post {
             view.x = pos[0]
             view.y = pos[1]
+            windowManager.updateViewLayout(cursorLayout, cursorLayoutParams)
+        }
+    }
+
+    protected fun setResultText(text: String, view: TextView) {
+        cursorLayout?.post {
+            view.text = text
             windowManager.updateViewLayout(cursorLayout, cursorLayoutParams)
         }
     }

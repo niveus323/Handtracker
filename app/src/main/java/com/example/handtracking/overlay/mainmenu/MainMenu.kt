@@ -8,9 +8,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.TextView
 import com.example.handtracking.R
 import com.example.handtracking.activity.MainActivity
 import com.example.handtracking.engine.Camera
+import com.example.handtracking.engine.GestureRecognizer
+import com.example.handtracking.engine.GestureRecognizer.Gesture.*
 import com.example.handtracking.engine.mediapipe.HandsTracker
 import com.example.handtracking.overlay.OverlayMenuController
 import com.google.mediapipe.solutions.hands.HandLandmark
@@ -28,9 +31,11 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
 
     private lateinit var camera: Camera
     private lateinit var handsTracker: HandsTracker
+    private lateinit var gestureRecognizer: GestureRecognizer
     private lateinit var cardView: View
     private lateinit var feedbackView: View
     private lateinit var btnViews: Array<View>
+    private lateinit var textView: TextView
 
     private var feedbackState: FeedbackState = FeedbackState.UI_GONE
     private var isTimerStarted = false
@@ -55,8 +60,8 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
         handsTracker = HandsTracker(context, this)
         handsTracker.onCreate(getMenuItemView(R.id.frameLayout)!!)
         handsTracker.handResultListener = this
-        cursorItem = getTargetItemView(R.id.cursorImage)!!
-        doubleCursorItems = arrayOf(getTargetItemView(R.id.firstTarget)!!, getTargetItemView(R.id.secondTarget)!!)
+        cursorItem = getTargetItemView(R.id.cursor)!!
+        doubleCursorItems = arrayOf(getTargetItemView(R.id.cursorFinger)!!, getTargetItemView(R.id.cursorThumb)!!)
         btnViews = arrayOf(getMenuItemView(R.id.btn_tap)!!
             ,getMenuItemView(R.id.btn_slide)!!,
             getMenuItemView(R.id.btn_drag)!!,
@@ -64,6 +69,8 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
             getMenuItemView(R.id.btn_move)!!)
 //        camera = Camera(context, getMenuItemView(R.id.surfaceView)!!)
 //        camera.initialize()
+        gestureRecognizer = GestureRecognizer(context.assets, context.filesDir)
+        textView = getTargetItemView(R.id.gestureResult)!!
     }
 
     override fun onDismissed() {
@@ -125,7 +132,7 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
         return arrayOf(x, y)
     }
 
-
+    private var isGestureRecognized = false
 
     /**
      * Called when HandsTracker Result Detected.
@@ -143,13 +150,17 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
         val thumbTipPos = calculatePosition(handsResult, HandLandmark.THUMB_TIP)
         setCursorPosition(fingerTipPos, doubleCursorItems[0])
         setCursorPosition(thumbTipPos, doubleCursorItems[1])
-
-        checkFeedbackState()
+        checkFeedbackState(handsResult)
     }
 
+    //피드백 사용하지 않는 상태에서 움직이지 않을 경우
+    //타이머가 돌아가는동안 손관절 좌표를 넣어서 각도 데이터 저장
+    //타이머가 끝나면 저장한 시퀀스 값으로 제스처 예측, 예측 결과에 맞는 행동 수행
+    //예측이 끝나면 시퀀스 데이터는 별도 공간에 저장, 다음 제스처 예측이 실행되거나 피드백 상태 변경에 의한 행동이 수행될 경우 데이터를 저장
+    //동작 수행 중에는 feedback 버튼이 눌리지 않았으면 함. -> feedback버튼이 눌릴 수 있는 상황과 아닌 상황을 구별해야함.
+    //눌리는게 가능하다고 생각하는 케이스 : 슬라이드, 드래그, 줌인/줌아웃과 같은 ON/OFF가 이루어지는 상황
 
-    private fun checkFeedbackState() {
-        /** UI_TAP, UI_SLIDE, UI_DRAG, UI_DISMISS, UI_MOVE, UI_VISIBLE 상태일때 [feedbackView], [cardView]의 충돌을 확인. */
+    private fun checkFeedbackState(handsResult: HandsResult) {
         if(feedbackState < FeedbackState.UI_GONE && !isCursorIntersected(feedbackView) && !isCursorIntersected(cardView)){
             cardView.post{
                 cardView.visibility = View.GONE
@@ -161,10 +172,84 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
         when(feedbackState){
             FeedbackState.UI_GONE -> {
                 if(isCursorIntersected(feedbackView)){
+                    stopTimer()
                     cardView.post{
                         cardView.visibility = View.VISIBLE
                     }
                     feedbackState = FeedbackState.UI_VISIBLE
+                }else{
+                    //타이머동안 인식되면 동작 수행하고 타이머 끝날때까지는 인식수행을 막는 방법으로.
+                    timerOnTargetNotMoved ({
+                        //움직이면 초기화
+                    },{
+                        //움직이지 않았는데 타이머 끝나면 데이터를 저장. 피드백 동작을 수행하면 이때 만들어진 데이터로 학습시킨다.
+                        gestureRecognizer.endRecognition()
+                        setResultText("", textView)
+                        isGestureRecognized = false
+                    })
+                    if(isTimerStarted) {
+                        val result = gestureRecognizer.recognizeGesture(handsResult)
+                        if(result != NONE && !isGestureRecognized){
+                            isGestureRecognized = true
+                            setResultText(result.name, textView)
+//                            //동작수행
+//                            when(result) {
+//                                TAP -> {
+//                                    viewModel!!.playTap(cursorPosition)
+//                                    gestureRecognizer.endRecognition()
+//                                }
+//                                SLIDE -> {
+//                                    //현재 위치를 기준으로 슬라이드 수행
+//                                    //ON/OFF 만들어서 동작
+//                                    //해당 위치가 기준점임을 보이기 위해 firstTarget을 위치시킨다.
+//                                    val standard = getTargetItemView<View>(R.id.firstTarget)!!
+//                                    standard.post {
+//                                        standard.visibility = View.VISIBLE
+//                                        standard.x = cursorPosition[0]
+//                                        standard.y = cursorPosition[1]
+//                                    }
+//                                    feedbackState = FeedbackState.SLIDE_2
+//                                    gestureRecognizer.endRecognition()
+//                                }
+//                                SLIDE_OFF -> {
+//                                    //기준점 삭제
+//                                    val standard = getTargetItemView<View>(R.id.firstTarget)!!
+//                                    standard.post {
+//                                        standard.visibility = View.GONE
+//                                    }
+//                                    gestureRecognizer.endRecognition()
+//                                }
+//                                DRAG -> {
+////                                    //현재 위치에서 드래그 시작
+//                                    feedbackState = FeedbackState.DRAG
+////                                    viewModel!!.playDrag(cursorPosition)
+//                                    gestureRecognizer.endRecognition()
+//                                }
+//                                DRAG_OFF -> {
+////                                    //현재 위치에서 드래그 끝
+////                                    viewModel?.terminateDrag(cursorPosition)
+//                                    gestureRecognizer.endRecognition()
+//                                }
+//                                ZOOM_IN -> {
+//                                    viewModel?.playZoomIn()
+//
+//                                    gestureRecognizer.endRecognition()
+//                                }
+//                                ZOOM_OUT -> {
+//                                    viewModel?.playZoomOut()
+//                                    gestureRecognizer.endRecognition()
+//                                }
+//                                VOLUME_UP -> {
+//                                    gestureRecognizer.endRecognition()
+//                                }
+//                                VOLUME_DOWN -> {
+//                                    gestureRecognizer.endRecognition()
+//                                }
+//                                else -> {}
+//                            }
+                        }
+                    }
+
                 }
             }
             FeedbackState.UI_VISIBLE -> {
@@ -177,13 +262,16 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
             }
             FeedbackState.TAP -> {
                 timerOnTargetNotMoved {
-                    viewModel?.playTap(initialTargetPosition)
+                    viewModel?.playTap(cursorPosition)
                     feedbackState = FeedbackState.UI_VISIBLE
+                    gestureRecognizer.apply {
+                        writeData(TAP)
+                    }
                 }
             }
             FeedbackState.SLIDE_1 -> {
                 timerOnTargetNotMoved {
-                    cursorItem = getTargetItemView(R.id.cursorImage)!!
+                    cursorItem = getTargetItemView(R.id.cursor)!!
                     cursorItem.post{
                         cursorItem.visibility = View.VISIBLE
                     }
@@ -195,23 +283,24 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
                 timerOnTargetNotMoved({
                         viewModel!!.playSlide(arrayOf(firstTarget.x, firstTarget.y),cursorPosition)
                     }, {
+                    setResultText("SLIDE_END", textView)
                     firstTarget.post {
                         firstTarget.visibility = View.GONE
                     }
                     feedbackState = FeedbackState.UI_VISIBLE
                 })
             }
-            /** Drag는 첫 위치를 지정하고, 그 다음에는 슬라이드처럼 이동. */
             FeedbackState.DRAG_ON -> {
                 timerOnTargetNotMoved {
                     viewModel?.playDrag(initialTargetPosition)
-                    feedbackState = FeedbackState.DRAG_OFF
+                    feedbackState = FeedbackState.DRAG
                 }
             }
-            FeedbackState.DRAG_OFF -> {
+            FeedbackState.DRAG -> {
                 timerOnTargetNotMoved({
                     viewModel!!.playDrag(cursorPosition)
                 }) {
+                    setResultText("DRAG_END", textView)
                     viewModel?.terminateDrag(cursorPosition)
                     feedbackState = FeedbackState.UI_VISIBLE
                 }
@@ -290,7 +379,7 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
         isTimerStarted = true
         timer = timer(period = 50) {
             time++
-            cursorItem.progress = time
+//            cursorItem.progress = time
             if(time >= 30){
                 onTimerEnd()
                 stopTimer()
@@ -319,7 +408,7 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
 
     /** State of Feedback.*/
     private enum class FeedbackState {
-        UI_TAP, UI_SLIDE, UI_DRAG, UI_DISMISS, UI_MOVE, UI_VISIBLE, UI_GONE, TAP, SLIDE_1, SLIDE_2, DRAG_ON, DRAG_OFF, MOVE
+        UI_TAP, UI_SLIDE, UI_DRAG, UI_DISMISS, UI_MOVE, UI_VISIBLE, UI_GONE, TAP, SLIDE_1, SLIDE_2, DRAG_ON, DRAG, MOVE
     }
 
     private val INITIAL_POS = arrayOf(-1F,-1F)

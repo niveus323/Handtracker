@@ -85,6 +85,12 @@ class GestureEngine(context: Context) {
         }
     }
 
+    fun terminateSlide(from: Array<Float>, to: Array<Float>) {
+        processingJob = processingScope?.launch {
+            actionExecutor?.terminateSlide(Action.Slide(from[0] ,from[1], to[0], to[1]))
+        }
+    }
+
     fun processZoom(pos1: Array<Float>, pos2: Array<Float>) {
         process(mutableListOf(Action.Zoom(pos1[0], pos1[1], pos2[0], pos2[1])))
     }
