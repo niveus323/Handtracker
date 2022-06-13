@@ -314,4 +314,13 @@ abstract class OverlayMenuController(context: Context) : OverlayController(conte
         deltaX = moveViewLocation[0] - menuViewLocation[0]
         deltaY = moveViewLocation[1] - menuViewLocation[1]
     }
+
+    protected open fun updateScreenMetrics() {
+        screenMetrics.updateScreenMetrics()
+        cursorLayout!!.post {
+            cursorLayoutParams.width = screenMetrics.screenSize.x
+            cursorLayoutParams.height = screenMetrics.screenSize.y
+            windowManager.updateViewLayout(cursorLayout,cursorLayoutParams)
+        }
+    }
 }

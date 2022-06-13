@@ -90,7 +90,7 @@ class ScreenMetrics(private val context: Context) {
     }
 
     /** Update orientation and screen size, if needed. Should be called after a configuration change. */
-    private fun updateScreenMetrics() {
+    public fun updateScreenMetrics() {
         val newOrientation = computeOrientation()
         if (orientation != newOrientation) {
             orientation = newOrientation

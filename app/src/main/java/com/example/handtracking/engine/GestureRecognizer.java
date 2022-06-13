@@ -29,9 +29,12 @@ public class GestureRecognizer {
     private final ArrayList<float[]> prevData = new ArrayList<>();
     private final Queue<Gesture> gesturePredicted = new LinkedList<>();
     private Interpreter interpreter;
-    public static final int SEQ_LENGTH = 10;
-    public static final int ANGLE_LENGTH = 15;
-    public static final int GESTURE_VARIATION = 7;
+    private static final int SEQ_LENGTH = 15;
+    private static final int ANGLE_LENGTH = 27;
+    private static final int GESTURE_VARIATION = 7;
+    private static final double[] X_AXIS = new double[] {1.0f,0.0f,0.0f};
+    private static final double[] Y_AXIS = new double[] {0.0f,1.0f,0.f};
+    private static final double[] Z_AXIS = new double[] {0.0f,0.0f,1.0f};
     public File filePath;
     public GestureRecognizer(AssetManager assetManager, File filePath) {
         try {
@@ -100,14 +103,18 @@ public class GestureRecognizer {
             v[i][2] = b[i][2] - a[i][2];
         }
 
-        double[][] v_normal = new double[HandLandmark.NUM_LANDMARKS-3][3];
+        double[][] v_normal = new double[HandLandmark.NUM_LANDMARKS][3];
         for (int i=0; i<HandLandmark.NUM_LANDMARKS-3; i++){
             double sum = Math.sqrt(v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]);
-            v_normal[i][0] = (double)v[i][0]/sum;
-            v_normal[i][1] = (double)v[i][1]/sum;
-            v_normal[i][2] = (double)v[i][2]/sum;
+            v_normal[i][0] = v[i][0] /sum;
+            v_normal[i][1] = v[i][1] /sum;
+            v_normal[i][2] = v[i][2] /sum;
         }
-        float[] angle = new float[24];
+        v_normal[18] = X_AXIS;
+        v_normal[19] = Y_AXIS;
+        v_normal[20] = Z_AXIS;
+
+        float[] angle = new float[ANGLE_LENGTH];
         angle[0] = arccos(0, 1, v_normal);angle[1] = arccos(1, 2, v_normal);
         angle[2] = arccos(2, 3, v_normal);angle[3] = arccos(0, 4, v_normal);
         angle[4] = arccos(4, 5, v_normal);angle[5] = arccos(5, 6, v_normal);
@@ -120,16 +127,19 @@ public class GestureRecognizer {
         angle[18] = arccos(12, 0, v_normal);angle[19] = arccos(15, 0, v_normal);
         angle[20] = arccos(6, 2, v_normal);angle[21] = arccos(9, 2, v_normal);
         angle[22] = arccos(12, 2, v_normal);angle[23] = arccos(15, 2, v_normal);
+        angle[24] = arccos(0, 18, v_normal);angle[25] = arccos(0, 19, v_normal);
+        angle[26] = arccos(0, 20, v_normal);
         synchronized (angleData) {
             angleData.add(angle);
             if(angleData.size() < SEQ_LENGTH) return Gesture.NONE;
             float[][] output = new float[1][GESTURE_VARIATION];
-            float[][][] input = new float[1][SEQ_LENGTH][24];
-            input[0] = angleData.subList(angleData.size()-SEQ_LENGTH, angleData.size()).toArray(new float[][]{ new float[24]});
+            float[][][] input = new float[1][SEQ_LENGTH][ANGLE_LENGTH];
+            input[0] = angleData.subList(angleData.size()-SEQ_LENGTH, angleData.size()).toArray(new float[][]{ new float[ANGLE_LENGTH]});
             interpreter.run(input, output);
+            Log.i("GESTURE RECOGNIZER", Arrays.toString(output[0]));
             int max = Gesture.NONE.ordinal();
             for(int i=0; i<GESTURE_VARIATION; i++) {
-                if(output[0][i] >= 0.9999 && (max == Gesture.NONE.ordinal() || output[0][max] < output[0][i])) max = i;
+                if(output[0][i] >= 0.9 && (max == Gesture.NONE.ordinal() || output[0][max] < output[0][i])) max = i;
             }
             gesturePredicted.offer(Gesture.values()[max]);
             if(gesturePredicted.size() > 3) gesturePredicted.poll();

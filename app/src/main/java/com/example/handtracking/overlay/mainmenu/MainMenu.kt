@@ -2,8 +2,10 @@ package com.example.handtracking.overlay.mainmenu
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -103,8 +105,16 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
         var sensitivity = 1 / (zeroToNine * 2)
         if (sensitivity < 2) sensitivity = 2F
 
-        var normalx = handsResult.multiHandLandmarks()[0].landmarkList[landmark].x
-        var normaly = handsResult.multiHandLandmarks()[0].landmarkList[landmark].y
+        var normalx: Float
+        var normaly: Float
+        if(screenMetrics.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            normalx = handsResult.multiHandLandmarks()[0].landmarkList[landmark].x
+            normaly = handsResult.multiHandLandmarks()[0].landmarkList[landmark].y
+        }else{
+            normalx = handsResult.multiHandLandmarks()[0].landmarkList[landmark].y
+            normaly = 1-handsResult.multiHandLandmarks()[0].landmarkList[landmark].x
+        }
+
         if (normalx > 1) normalx = 1F
         if (normalx < 0) normalx = 0F
         if (normaly > 1) normaly = 1F
@@ -116,6 +126,7 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
         val upperboundaryy = displaySize.y.toFloat() * (1 + (1 / sensitivity)) / 2
         val lowerboundaryx = displaySize.x.toFloat() * (1 - (1 / sensitivity)) / 2
         val lowerboundaryy = displaySize.y.toFloat() * (1 - (1 / sensitivity)) / 2
+
         if (pixelx > upperboundaryx) pixelx = upperboundaryx
         if (pixelx < lowerboundaryx) pixelx = lowerboundaryx
         if (pixely > upperboundaryy) pixely = upperboundaryy
@@ -124,8 +135,16 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
         var x = (pixelx - lowerboundaryx) * sensitivity
         var y = (pixely - lowerboundaryy) * sensitivity
         // 커서 Boundary 지정
-        val boundaryx = displaySize.x.toFloat() * 0.9
-        val boundaryy = displaySize.y.toFloat() * 0.96
+        val boundaryx: Double
+        val boundaryy: Double
+        if(screenMetrics.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            boundaryx = displaySize.x.toFloat() * 0.9
+            boundaryy = displaySize.y.toFloat() * 0.96
+        }else{
+            boundaryx = displaySize.x.toFloat() * 0.9
+            boundaryy = displaySize.y.toFloat() * 0.96
+        }
+
         if (x > boundaryx) x = boundaryx.toFloat()
         if (x < 0) x = 0F
         if (y > boundaryy) y = boundaryy.toFloat()
@@ -146,7 +165,9 @@ class MainMenu(context: Context) : OverlayMenuController(context), HandsTracker.
      *
      */
     override fun onHandResultDetected(handsResult: HandsResult) {
+        updateScreenMetrics()
         val position = calculatePosition(handsResult, HandLandmark.MIDDLE_FINGER_MCP)
+        Log.i(TAG, position.contentToString())
         setCursorPosition(position, cursorItem)
         val fingerTipPos = calculatePosition(handsResult, HandLandmark.INDEX_FINGER_TIP)
         val thumbTipPos = calculatePosition(handsResult, HandLandmark.THUMB_TIP)
