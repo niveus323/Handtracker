@@ -40,36 +40,15 @@ internal class ActionExecutor(private val gestureExecutor: (GestureDescription) 
     }
 
     private suspend fun executeSlide(slide: Slide) {
-        if(slide.x1!!<0 ||  slide.y1!!<0 ){
-            Log.w(TAG, "FROM VALUE NEGATIVE")
-            return
-        }
-        if(slide.x2!!<0 || slide.y2!!<0){
-            Log.w(TAG, "TO VALUE NEGATIVE")
-            return
-        }
         val slidePath = Path()
         val clickBuilder = GestureDescription.Builder()
         slidePath.moveTo(slide.x1!!, slide.y1!!)
         slidePath.lineTo(slide.x2!!, slide.y2!!)
-        clickBuilder.addStroke(GestureDescription.StrokeDescription(slidePath, 0, 20))
+        clickBuilder.addStroke(GestureDescription.StrokeDescription(slidePath, 0, 50))
         withContext(Dispatchers.Main) {
             gestureExecutor(clickBuilder.build())
         }
-        delay(20)
-    }
-
-    suspend fun terminateSlide(slide: Slide) {
-//        val dragPath = Path()
-//        dragPath.moveTo(prevSlide!!.x2!!, prevSlide!!.y2!!)
-//        dragPath.lineTo(slide.x2!!, slide.y2!!)
-//        val clickBuilder = GestureDescription.Builder()
-//        val strokeDescription = prevStroke!!.continueStroke(dragPath, 0, 1, false)
-//        clickBuilder.addStroke(strokeDescription)
-//        withContext(Dispatchers.Main) {
-//            gestureExecutor(clickBuilder.build())
-//        }
-        prevStroke = null
+        delay(50)
     }
 
 
@@ -106,7 +85,6 @@ internal class ActionExecutor(private val gestureExecutor: (GestureDescription) 
         withContext(Dispatchers.Main) {
             gestureExecutor(clickBuilder.build())
         }
-        Log.i(TAG, "Drag Terminate in (${drag.x}, ${drag.y})")
         prevStroke = null
     }
 
@@ -114,7 +92,6 @@ internal class ActionExecutor(private val gestureExecutor: (GestureDescription) 
         if(prevZoom == null) {
             prevZoom = zoom
         }else {
-            //Duration 값은 제스처 인식 도입 후 값을 변경해보아야 함 
             val swipePath1 = Path()
             val swipePath2 = Path()
             val clickBuilder = GestureDescription.Builder()

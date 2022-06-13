@@ -18,14 +18,20 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class GestureRecognizer {
     private final ArrayList<float[]> angleData = new ArrayList<>();
     private final ArrayList<float[]> prevData = new ArrayList<>();
+    private final Queue<Gesture> gesturePredicted = new LinkedList<>();
     private Interpreter interpreter;
     public static final int SEQ_LENGTH = 10;
     public static final int ANGLE_LENGTH = 15;
+    public static final int GESTURE_VARIATION = 7;
     public File filePath;
     public GestureRecognizer(AssetManager assetManager, File filePath) {
         try {
@@ -39,14 +45,14 @@ public class GestureRecognizer {
     public enum Gesture {
         TAP,
         SLIDE,
-        SLIDE_OFF,
+//        SLIDE_OFF,
         DRAG,
-        DRAG_OFF,
+//        DRAG_OFF,
         ZOOM_IN,
         ZOOM_OUT,
         VOLUME_UP,
         VOLUME_DOWN,
-        NONE
+        NONE;
     }
 
     private ByteBuffer loadModelFile(AssetManager assetManager) throws IOException {
@@ -102,43 +108,43 @@ public class GestureRecognizer {
             v_normal[i][2] = (double)v[i][2]/sum;
         }
         float[] angle = new float[24];
-        angle[0] = arccos(0, 1, v_normal);
-        angle[1] = arccos(1, 2, v_normal);
-        angle[2] = arccos(2, 3, v_normal);
-        angle[3] = arccos(0, 4, v_normal);
-        angle[4] = arccos(4, 5, v_normal);
-        angle[5] = arccos(5, 6, v_normal);
-        angle[6] = arccos(0, 7, v_normal);
-        angle[7] = arccos(7, 8, v_normal);
-        angle[8] = arccos(8, 9, v_normal);
-        angle[9] = arccos(0, 10, v_normal);
-        angle[10] = arccos(10, 11, v_normal);
-        angle[11] = arccos(11, 12, v_normal);
-        angle[12] = arccos(0, 13, v_normal);
-        angle[13] = arccos(13, 14, v_normal);
-        angle[14] = arccos(14, 15, v_normal);
-        angle[15] = arccos(3, 0, v_normal);
-        angle[16] = arccos(6, 0, v_normal);
-        angle[17] = arccos(9, 0, v_normal);
-        angle[18] = arccos(12, 0, v_normal);
-        angle[19] = arccos(15, 0, v_normal);
-        angle[20] = arccos(6, 2, v_normal);
-        angle[21] = arccos(9, 2, v_normal);
-        angle[22] = arccos(12, 2, v_normal);
-        angle[23] = arccos(15, 2, v_normal);
-
-        angleData.add(angle);
-        if(angleData.size() < SEQ_LENGTH) return Gesture.NONE;
-        float[][] output = new float[1][9];
-        float[][][] input = new float[1][SEQ_LENGTH][24];
-        input[0] = angleData.subList(angleData.size()-10, angleData.size()).toArray(new float[][]{ new float[24]});
-        interpreter.run(input, output);
-        int max = -1;
-        Log.i("GESTURE RECOGNIZER", Arrays.toString(output[0]));
-        for(int i=0; i<9; i++) {
-            if(output[0][i] >= 0.999999 && (max < 0 || output[0][max] < output[0][i])) max = i;
+        angle[0] = arccos(0, 1, v_normal);angle[1] = arccos(1, 2, v_normal);
+        angle[2] = arccos(2, 3, v_normal);angle[3] = arccos(0, 4, v_normal);
+        angle[4] = arccos(4, 5, v_normal);angle[5] = arccos(5, 6, v_normal);
+        angle[6] = arccos(0, 7, v_normal);angle[7] = arccos(7, 8, v_normal);
+        angle[8] = arccos(8, 9, v_normal);angle[9] = arccos(0, 10, v_normal);
+        angle[10] = arccos(10, 11, v_normal);angle[11] = arccos(11, 12, v_normal);
+        angle[12] = arccos(0, 13, v_normal);angle[13] = arccos(13, 14, v_normal);
+        angle[14] = arccos(14, 15, v_normal);angle[15] = arccos(3, 0, v_normal);
+        angle[16] = arccos(6, 0, v_normal);angle[17] = arccos(9, 0, v_normal);
+        angle[18] = arccos(12, 0, v_normal);angle[19] = arccos(15, 0, v_normal);
+        angle[20] = arccos(6, 2, v_normal);angle[21] = arccos(9, 2, v_normal);
+        angle[22] = arccos(12, 2, v_normal);angle[23] = arccos(15, 2, v_normal);
+        synchronized (angleData) {
+            angleData.add(angle);
+            if(angleData.size() < SEQ_LENGTH) return Gesture.NONE;
+            float[][] output = new float[1][GESTURE_VARIATION];
+            float[][][] input = new float[1][SEQ_LENGTH][24];
+            input[0] = angleData.subList(angleData.size()-SEQ_LENGTH, angleData.size()).toArray(new float[][]{ new float[24]});
+            interpreter.run(input, output);
+            int max = Gesture.NONE.ordinal();
+            for(int i=0; i<GESTURE_VARIATION; i++) {
+                if(output[0][i] >= 0.9999 && (max == Gesture.NONE.ordinal() || output[0][max] < output[0][i])) max = i;
+            }
+            gesturePredicted.offer(Gesture.values()[max]);
+            if(gesturePredicted.size() > 3) gesturePredicted.poll();
+            if(checkGestureRepeated(3)) return Gesture.values()[max];
         }
-        return max < 0? Gesture.NONE : Gesture.values()[max];
+        return Gesture.NONE;
+    }
+
+    private boolean checkGestureRepeated(int count) {
+        if(gesturePredicted.size() < count){
+            return false;
+        }
+        Log.i("GESTURE RECOGNITION", gesturePredicted.toString());
+        HashSet<Gesture> hashSet = new HashSet<>(gesturePredicted);
+        return hashSet.size() <= 1;
     }
 
     private float arccos(int i, int j, double[][] v_normal) {
@@ -146,9 +152,13 @@ public class GestureRecognizer {
     }
 
     public void endRecognition() {
-        if(!prevData.isEmpty()) prevData.clear();
-        prevData.addAll(angleData);
-        angleData.clear();
+        synchronized (prevData) {
+            if(!prevData.isEmpty()) prevData.clear();
+            prevData.addAll(angleData);
+        }
+        synchronized (angleData) {
+            angleData.clear();
+        }
     }
 
     public void writeData(Gesture type) {
